@@ -5,22 +5,39 @@ import morgan from "morgan";
 import authroute from "./routers/authRoute.js"
 import { connectDb } from "./config/DbConnect.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
-
+import session from "express-session";
+import passport from "passport";
+import { CatchError } from "./middlewares/CatchError.js";
+import cookieParser from 'cookie-parser';
 config({
     path:'./.env'
 })
 
 const app = express();
 const PORT = process.env.PORT
+
+
 app.use(morgan("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
+app.set('trust proxy', 1);
 connectDb();
+app.use(session({
+    secret: process.env.SESSION_SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.use('/api/user',authroute)
+app.use('/api/v1',authroute)
 
+app.use(CatchError)
 app.use(notFound);
 app.use(errorHandler)
+app.use(cookieParser());
+
 app.listen(PORT,(req,res)=>{
     console.log(`port is running on ${PORT}`);
 })

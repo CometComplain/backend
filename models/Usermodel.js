@@ -2,25 +2,23 @@ import mongoose from "mongoose";
 
 
 var userSchema = new mongoose.Schema({
-    name:{
+    googleId: {
         type:String,
-        required:true,
-        index:true,
+        unique:true
     },
-    email:{
+    displayName: String,
+    email: {
         type:String,
-        required:true,
-        unique:true,
+        unique:true
     },
-    mobile:{
+    IsBlock:{
+        type:Boolean,
+        default:false
+    },
+    role:{
         type:String,
-        required:true,
-        unique:true,
-    },
-    password:{
-        type:String,
-        required:true,
-    },
+        default:"user"
+    }
 },{
     timestamps:true
 });
