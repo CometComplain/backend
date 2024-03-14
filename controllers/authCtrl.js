@@ -42,7 +42,7 @@ export const UserLogout = ((req, res) => {
 });
 
 //Login check 
-export const isLoggedin = ((req,res,next)=>{
+export const    isLoggedin = ((req,res,next)=>{
     req.user ? next():res.sendStatus(401)
 })
 
