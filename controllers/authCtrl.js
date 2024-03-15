@@ -41,11 +41,6 @@ export const UserLogout = ((req, res) => {
     });
 });
 
-//Login check 
-export const    isLoggedin = ((req,res,next)=>{
-    req.user ? next():res.sendStatus(401)
-})
-
 //Block User by admin
 export const BlockUser = AsyncHandler(async(req,res)=>{
     const id = req.params.id

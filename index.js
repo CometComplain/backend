@@ -9,6 +9,7 @@ import session from "express-session";
 import passport from "passport";
 import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
+import compliantRoute from "./routers/complientRoute.js"
 config({
     path:'./.env'
 })
@@ -31,7 +32,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/api/v1',authroute)
+app.use('/grevience/v3/auth',authroute)
+app.use('/grievance/v3',compliantRoute)
 
 app.use(CatchError)
 app.use(notFound);
