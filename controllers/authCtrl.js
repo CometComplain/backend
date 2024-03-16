@@ -1,5 +1,5 @@
 import passport from "passport";
-import { User }  from "../models/Usermodel.js";
+import { User }  from "../models/userModel.js";
 import AsyncHandler from "express-async-handler";
 import { OAuth2Client } from 'google-auth-library';
 import dotenv from "dotenv";
@@ -8,8 +8,8 @@ dotenv.config();
 export const Userauth = passport.authenticate('google', { scope: [ 'email', 'profile' ] });
 
 export const UserCallBack = passport.authenticate('google', {
-    successRedirect: '/api/v1/auth/protected',
-    failureRedirect: '/api/v1/auth/failure'
+    successRedirect: '/grievance/auth/protected',
+    failureRedirect: '/grievance/auth/failure'
 });
 
 export const UserSuccessLog = ((req,res)=>{

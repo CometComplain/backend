@@ -23,6 +23,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.set('trust proxy', 1);
 connectDb();
+app.use(cookieParser());
 app.use(session({
     secret: process.env.SESSION_SECRET_KEY,
     resave: false,
@@ -32,13 +33,12 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/grevience/v3/auth',authroute)
-app.use('/grievance/v3',compliantRoute)
+app.use('/grievance/auth',authroute)
+app.use('/grievance',compliantRoute)
 
 app.use(CatchError)
 app.use(notFound);
 app.use(errorHandler)
-app.use(cookieParser());
 
 app.listen(PORT,(req,res)=>{
     console.log(`port is running on ${PORT}`);

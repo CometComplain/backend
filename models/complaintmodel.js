@@ -1,30 +1,31 @@
 import mongoose  from "mongoose";
-import shortid from "shortid";
 
+
+// change the attributes name according to your comfortable names
 const compliantSchema = new mongoose.Schema({
-    id: {
+    CompliantID: {
         type: String,
-        default: shortid.generate
+        default:"",
+        unique:true
     },
-    Name:{
+    name:{
         type:String,
         required:true
     },
-    Student_ID:{
+    student_ID:{
         type:String,
     },
     mobile:{
         type:String,
-        required:true
     },
-    CompliantType:{
+    compliantType:{
         type:String,
         required:true
     },
-    Address:{
+    location:{
         type:String,
     },
-    Description:{
+    description:{
         type:String
     },
     isVerified: {
@@ -34,8 +35,13 @@ const compliantSchema = new mongoose.Schema({
     isSolved: {
         type: Boolean,
         default: false
+    },
+    userId: {
+        type: String,
+        required: true
     }
 })
+
 
 compliantSchema.index({ isVerified: 1}); // Create an index on isVerified
 compliantSchema.index({ isSolved: 1}); // Create an index on isSolved
