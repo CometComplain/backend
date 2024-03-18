@@ -1,5 +1,16 @@
 import express from "express";
-import { BlockUser, getAllUsers, getUser, unblockUser, Userauth, UserCallBack, UserfailureLog, UserLogout, UserSuccessLog } from "../controllers/authCtrl.js";
+import {
+    BlockUser,
+    getAllUsers,
+    getUser,
+    pingUser,
+    unblockUser,
+    Userauth,
+    UserCallBack,
+    UserfailureLog,
+    UserLogout,
+    UserSuccessLog
+} from "../controllers/authCtrl.js";
 import { GoogleAuth } from "../config/goggleauth.js";
 import dotenv from 'dotenv';
 import { CatchError } from "../middlewares/CatchError.js";
@@ -19,6 +30,7 @@ router.get('/protected', isLoggedin, CatchError(UserSuccessLog));
 router.get('/failure',CatchError(UserfailureLog));
 router.get('/logout',isLoggedin,CatchError(UserLogout));
 router.get('/getuser/:id',isLoggedin,CatchError(CheckRole("admin")),CatchError(getUser));
+router.get('/pingUser', CatchError(pingUser));
 router.get('/getalluser',isLoggedin,CatchError(CheckRole("admin")),CatchError(getAllUsers));
 router.put('/blockUser/:id',isLoggedin,CatchError(CheckRole("admin")),CatchError(BlockUser));
 router.put('/unblockUser/:id',isLoggedin,CatchError(CheckRole("admin")),CatchError(unblockUser));

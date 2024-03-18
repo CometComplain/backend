@@ -28,7 +28,10 @@ app.use(session({
     secret: process.env.SESSION_SECRET_KEY,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { 
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hrs
+      }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -36,11 +39,16 @@ app.use(passport.session());
 app.use('/grievance/auth',authroute)
 app.use('/grievance',compliantRoute)
 
+app.get("/",(req,res)=>{
+    res.send("Hello World")  // testing
+});
+
 app.all("*",(req,res,next)=>{
     const err = new Error(`Route ${req.originalUrl} not Found`);
     err.statusCode = 404,
     next(err)
 })
+
 
 app.use(CatchError)
 app.use(notFound);
@@ -49,3 +57,4 @@ app.use(errorHandler)
 app.listen(PORT,(req,res)=>{
     console.log(`port is running on ${PORT}`);
 })
+

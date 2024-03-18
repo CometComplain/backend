@@ -8,11 +8,15 @@ const nanoid = customAlphabet('0123456789', 10);
 
 //  To Register the compliant
 export const RegisterCompliant = AsyncHandler(async(req,res)=>{
-    const complaint = await Compliant.create({
-        ...req.body,
-        userId: req.user.id
-    })
-    res.json(complaint)
+    // const complaint = await Compliant.create({
+    //     ...req.body,
+    //     userId: req.user.id
+    // })
+    // res.json(complaint)
+    console.log(req.body);
+    res.json({
+        status: "success",
+    });
 })
 
 // To Delete the compliant

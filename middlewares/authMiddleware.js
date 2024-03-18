@@ -3,7 +3,7 @@ import { User } from "../models/UserModel.js";
 
 //Login check 
 export const isLoggedin = ((req,res,next)=>{
-    req.user ? next():res.sendStatus(401)
+    req.user ? next() : res.sendStatus(401)
 })
 
 

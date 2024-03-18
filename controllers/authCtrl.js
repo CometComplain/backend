@@ -3,6 +3,7 @@ import AsyncHandler from "express-async-handler";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import { User } from "../models/UserModel.js";
+import {frontendUrls} from "../constants.js";
 dotenv.config();
 
 // User authentication
@@ -11,8 +12,8 @@ export const Userauth = passport.authenticate("google", {
 });
 
 export const UserCallBack = passport.authenticate("google", {
-  successRedirect: "/grievance/auth/protected",
-  failureRedirect: "/grievance/auth/failure",
+  successRedirect: frontendUrls.home,
+  failureRedirect: frontendUrls.loginError,
 });
 
 export const UserSuccessLog = (req, res) => {
@@ -41,7 +42,10 @@ export const UserLogout = (req, res) => {
         });
       } else {
         res.clearCookie("connect.sid");
-        res.redirect("/api/v1/auth/login");
+        return res.json({
+          success: true,
+          message: "Logout successfully",
+        });
       }
     });
   });
@@ -79,6 +83,16 @@ export const getUser = AsyncHandler(async (req, res) => {
     throw new Error("Invalid Id,Please try Again!");
   }
   res.json(user);
+});
+
+export const pingUser = AsyncHandler(async (req, res) => {
+  console.log(req.user);
+  if(req.user){
+    return res.json(req.user);
+  }
+  else{
+    res.status(401).json({message:"User not found"});
+  }
 });
 
 //All User Information access by admin
