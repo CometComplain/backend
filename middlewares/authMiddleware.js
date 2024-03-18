@@ -1,5 +1,5 @@
 import AsyncHandler from "express-async-handler";
-import { User } from "../models/userModel.js";
+import { User } from "../models/UserModel.js";
 
 //Login check 
 export const isLoggedin = ((req,res,next)=>{
@@ -7,6 +7,7 @@ export const isLoggedin = ((req,res,next)=>{
 })
 
 
+// this function is used to check the role
 export const CheckRole = (role) => {
     return AsyncHandler(async(req, res, next) => {
         const { id } = req.user;
@@ -19,6 +20,8 @@ export const CheckRole = (role) => {
         }
     })
 }
+
+// this function is used to check whether the role is technician or not
 export const TechnicianRole = AsyncHandler(async(req,res,next)=>{
     const { id } = req.user;
     const foundUser = await User.findOne({googleId: id});

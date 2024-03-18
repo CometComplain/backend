@@ -1,83 +1,89 @@
 import passport from "passport";
-import { User }  from "../models/userModel.js";
 import AsyncHandler from "express-async-handler";
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
+import { User } from "../models/UserModel.js";
 dotenv.config();
 
-export const Userauth = passport.authenticate('google', { scope: [ 'email', 'profile' ] });
-
-export const UserCallBack = passport.authenticate('google', {
-    successRedirect: '/grievance/auth/protected',
-    failureRedirect: '/grievance/auth/failure'
+// User authentication
+export const Userauth = passport.authenticate("google", {
+  scope: ["email", "profile"],
 });
 
-export const UserSuccessLog = ((req,res)=>{
-    console.log(req.user);
-        const name = req.user.displayName;
-        res.json({
-            success:true,
-            message:`hello ${name}`
-        })
-})
+export const UserCallBack = passport.authenticate("google", {
+  successRedirect: "/grievance/auth/protected",
+  failureRedirect: "/grievance/auth/failure",
+});
 
-export const UserfailureLog = ((req,res)=>{
-    res.json({
-        success:false,
-        message:"somthing went wrong,please try again"
-    })
-})
+export const UserSuccessLog = (req, res) => {
+  console.log(req.user);
+  const name = req.user.displayName;
+  res.json({
+    success: true,
+    message: `hello ${name}`,
+  });
+};
+
+export const UserfailureLog = (req, res) => {
+  res.json({
+    success: false,
+    message: "somthing went wrong,please try again",
+  });
+};
 //User Logout
-export const UserLogout = ((req, res) => {
-    req.logout(() => {
-        req.session.destroy(err => {
-            if(err) {
-                return res.json({ success: false, message: "Could not log out, please try again" });
-            } else {
-                res.clearCookie('connect.sid')
-                res.redirect('/api/v1/auth/login')
-            }
+export const UserLogout = (req, res) => {
+  req.logout(() => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Could not log out, please try again",
         });
+      } else {
+        res.clearCookie("connect.sid");
+        res.redirect("/api/v1/auth/login");
+      }
     });
-});
+  });
+};
 
 //Block User by admin
-export const BlockUser = AsyncHandler(async(req,res)=>{
-    const id = req.params.id
-    const user =  await User.findOne({googleId:id})
-    if(!user){
-        throw new Error("Invalid Id. Please try Again!")
-    }
-    user.IsBlock = true;
-    await user.save();
-    res.json(user)
-})
+export const BlockUser = AsyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const user = await User.findOne({ googleId: id });
+  if (!user) {
+    throw new Error("Invalid Id. Please try Again!");
+  }
+  user.IsBlock = true;
+  await user.save();
+  res.json(user);
+});
 
 //Unblock User by admin
-export const unblockUser = AsyncHandler(async(req,res)=>{
-    const { id } = req.params
-    const user = await User.findOne({googleId:id})
-    if(!user){
-        throw new Error("Invalid Id,Please try Again!")
-    }
-    user.IsBlock = false;
-    await user.save();
-    res.json(user)
-})
+export const unblockUser = AsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findOne({ googleId: id });
+  if (!user) {
+    throw new Error("Invalid Id,Please try Again!");
+  }
+  user.IsBlock = false;
+  await user.save();
+  res.json(user);
+});
 
 //User Information access by admin
-export const getUser = AsyncHandler(async(req,res)=>{
-    const { id } = req.params
-    const user = await User.findOne({googleId:id})
-    if(!user){
-        throw new Error("Invalid Id,Please try Again!")
-    }
-    res.json(user);
-})
+export const getUser = AsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findOne({ googleId: id });
+  if (!user) {
+    throw new Error("Invalid Id,Please try Again!");
+  }
+  res.json(user);
+});
 
 //All User Information access by admin
-export const getAllUsers = AsyncHandler(async(req,res)=>{
-    console.log(req.user);
-    const users = await User.find();
-    res.json(users)
-})
+export const getAllUsers = AsyncHandler(async (req, res) => {
+  console.log(req.user);
+  const users = await User.find();
+  res.json(users);
+});

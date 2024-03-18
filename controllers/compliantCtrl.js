@@ -1,8 +1,8 @@
 import AsyncHandler from "express-async-handler"
 import { Compliant } from "../models/complaintModel.js";
-import { User } from "../models/userModel.js";
 import { customAlphabet } from 'nanoid';
 import { Counter } from "../models/counterModel.js";
+import { User } from "../models/UserModel.js";
 
 const nanoid = customAlphabet('0123456789', 10);
 

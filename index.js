@@ -36,6 +36,12 @@ app.use(passport.session());
 app.use('/grievance/auth',authroute)
 app.use('/grievance',compliantRoute)
 
+app.all("*",(req,res,next)=>{
+    const err = new Error(`Route ${req.originalUrl} not Found`);
+    err.statusCode = 404,
+    next(err)
+})
+
 app.use(CatchError)
 app.use(notFound);
 app.use(errorHandler)
