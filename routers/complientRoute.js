@@ -25,30 +25,41 @@ router.get(
   CheckRole("admin"),
   CatchError(GetCompliantDetail)
 );
+
+
+router.get('complaints/technician', isLoggedin, (req, res, next) => {
+  
+});
+
+
 router.get(
   "/getunverfieddata",
   isLoggedin,
   CheckRole("verifier"),
   CatchError(GetUnverfiedCompliantsData)
 );
+
 router.get(
   "/getverfieddata",
   isLoggedin,
   TechnicianRole,
   CatchError(GetVerifiedCompliantsData)
 );
-router.get(
-  "/verify/:id",
+
+router.post(
+  "/verify",
   isLoggedin,
   CheckRole("verifier"),
   CatchError(verifyCompliant)
 );
+
 router.get(
   "/solve/:id",
   isLoggedin,
   TechnicianRole,
   CatchError(SolveCompliant)
 );
+
 router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"

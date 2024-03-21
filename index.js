@@ -46,7 +46,10 @@ app.get("/",(req,res)=>{
 app.all("*",(req,res,next)=>{
     const err = new Error(`Route ${req.originalUrl} not Found`);
     err.statusCode = 404,
-    next(err)
+    res.status(404).json({
+        message:err.message,
+    })
+    // next(err)
 })
 
 

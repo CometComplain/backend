@@ -1,5 +1,5 @@
 import AsyncHandler from "express-async-handler"
-import { Compliant } from "../models/complaintModel.js";
+import { Compliant, statusMap } from "../models/complaintModel.js";
 import { customAlphabet } from 'nanoid';
 import { Counter } from "../models/counterModel.js";
 import { User } from "../models/UserModel.js";
@@ -41,11 +41,13 @@ export const SolveCompliant = AsyncHandler(async (req,res)=>{
 
 //to make isVerified boolean to true. this is done by Verifier and we will give a id for complient after verifing the compliant
 export const verifyCompliant = AsyncHandler(async (req, res) => {
-    const { id } = req.params;
-    console.log(req.params);
-    const countDocument = await Counter.findByIdAndUpdate({_id: 'compliantId'}, {$inc: { seq: 1}}, {new: true, upsert: true});
-    const compliant = await Compliant.findByIdAndUpdate(id, { isVerified: true, CompliantID: String(countDocument.seq) }, { new: true });
-    res.json(compliant);
+    const { complaintId: id } = req.body;
+    console.log(req.body);
+    const compliant = await Compliant.findOneAndUpdate(id, { status: statusMap.verified }, { new: true });
+    res.status(200).json({
+        status: "success",
+        message: "sucessfully updates the status of the compliant",
+    });
 });
 
 //Get the compliant detail 
