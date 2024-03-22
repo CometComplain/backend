@@ -14,6 +14,7 @@ import {
   RegisterCompliant,
   SolveCompliant,
   fileUpload,
+  getComplaints,
   verifyCompliant,
 } from "../controllers/compliantCtrl.js";
 import { upload } from "../middlewares/uploadfile.js";
@@ -28,9 +29,7 @@ router.get(
 );
 
 
-router.get('complaints/technician', isLoggedin, (req, res, next) => {
-  
-});
+router.get('complaints/:suburl', isLoggedin, CatchError(getComplaints));
 
 
 router.get(

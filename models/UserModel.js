@@ -8,11 +8,11 @@ export const UserTypes = {
 };
 
 export const technicianDomains = {
-    Electrical: 0,
-    Plumbing: 1,
-    Carpentry: 2,
-    Civil: 3,
-    Other: 4,
+    electrical: 0,
+    plumbing: 1,
+    carpentry: 2,
+    civil: 3,
+    other: 4,
 };
 
 
@@ -43,6 +43,7 @@ var userSchema = new mongoose.Schema({
     domain:{
         type: Number,
         enum: Object.values(technicianDomains),
+        required: true,
     },
     /* only for complainant */
     noOfComplaints: {

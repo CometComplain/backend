@@ -4,6 +4,7 @@ import { customAlphabet } from "nanoid";
 import { User } from "../models/UserModel.js";
 import crypto from "crypto";
 import router from "../routers/complientRoute.js";
+import { format } from "path";
 
 const nanoid = customAlphabet("0123456789", 10);
 
@@ -39,50 +40,85 @@ complaint format = {
 */
 
 const getId = async (complaint) => {
+  // todo: tobe chanced accordingly to the id generating scheme
   const id = nanoid();
+  return id;
 };
 
-const checkUniqueComplaint = async (complaint) => {
+const getComplaintHash = async (complaint) => {
   const hash = crypto.createHash("sha256");
   const complaintString = JSON.stringify(complaint);
   hash.update(complaintString);
   const complaintHash = hash.digest("hex");
-
   const foundComplaint = await Compliant.findOne({ complaintHash });
-  if (!foundComplaint) {
-    return [false, complaintHash];
+  if (foundComplaint) {
+    throw new Error("Complaint already exists");
   }
-  return [true, complaintHash];
+  return complaintHash;
 };
 
 //  To Register the compliant
 export const RegisterCompliant = AsyncHandler(async (req, res) => {
-  // const { id, complaint } = req.body;
-  // const user = await User.findById(id);
-  // const [isUniqueComplaint, hash] = checkUniqueComplaint(complaint);
-  // if(isUniqueComplaint){
-  //     throw new Error("Complaint already registered");
-  // }
+  const { complaint } = req.body;
+  const { id } = req.user;
 
-  // const complaintId = getId(complaint);
-  // const createdComplaint = await Compliant.create({
-  //     ...complaint,
-  //     createdBy: user._id,
-  // });
-  // console.log('::registered a complaint : ', createdComplaint);
-  // res.json({
-  //     status: "success",
-  //     message: "Complaint registered successfully",
-  //     id: createdComplaint._id,
-  // });
-  console.log(req.body);
-  res.json({
+  const user = await User.findOne({ googleId: id });
+
+  const hash = await getComplaintHash(complaint);
+  const complaintId = await getId(complaint);
+
+  const formattedComplaint = {
+    ...complaint,
+    createdBy: user._id,
+    complaintHash: hash,
+    complaintId,
+  };
+
+  const createdComplaint = await Compliant.create(formattedComplaint);
+
+  return res.status(200).json({
     status: "success",
-    comp: req.complaint,
+    message: "Complaint registered successfully",
+    id: createdComplaint.complaintId,
   });
 });
 
+// testing
+// export const RegisterCompliant = AsyncHandler(async (req, res) => {
+//   console.log(req.body);
+//   res.json({
+//     status: "success",
+//     comp: req.complaint,
+//   });
+// });
 
+
+const pageSize = 10;
+
+export const getComplaints = AsyncHandler(async (req, res) => {
+  const { suburl } = req.params;
+  const { type, page } = req.query;
+  console.log("-------------------> debug <-------------------");
+  console.log(suburl);
+  console.log(type);
+  console.log(page);
+  console.log("-----------------------------------------------");
+  const user = await User.findOne({ googleId: req.user.id });
+  let complaints;
+  if (suburl === "Complainant") {
+    complaints = await Compliant.find({ createdBy: user._id }).sort({createdAt: -1}).skip(pageSize * (page - 1)).limit(pageSize);
+  }
+  else if (suburl === "Verifier") {
+    complaints = await Compliant.find({ status: statusMap.pending }).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
+  }
+  else if (suburl === "Technician") {
+    complaints = await Compliant.find({ status: statusMap.verified, compliantType: user.domain}).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
+  }
+  else {
+    complaints = [];
+  }
+  return complaints.length === pageSize ? res.json({ complaints, nextPage: page + pageSize }) : res.json({ complaints });
+});
 
 export const fileUpload = AsyncHandler(async (req, res) => {
   try {
@@ -94,13 +130,11 @@ export const fileUpload = AsyncHandler(async (req, res) => {
     const tempFilePath = `temp/${fileName}`; // Specify the path to your temporary directory
     await file.mv(tempFilePath); // Save the file to the temporary directory
 
-    res
-      .status(200)
-      .json({
-        message: "File saved successfully",
-        filePath: tempFilePath,
-        staus: "success",
-      });
+    res.status(200).json({
+      message: "File saved successfully",
+      filePath: tempFilePath,
+      staus: "success",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
