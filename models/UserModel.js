@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const UserTypes = {
+export const UserTypes = {
     Complainant: 0,
     Verifier: 1,
     Technician: 2,
     Admin: 3,
 };
 
-const technicianDomains = {
+export const technicianDomains = {
     Electrical: 0,
     Plumbing: 1,
     Carpentry: 2,
@@ -21,7 +21,7 @@ var userSchema = new mongoose.Schema({
         type:String,
         unique:true,
     },
-    roolNo: {
+    rollNo: {
         type: String,
         unique: true,
     },
@@ -39,19 +39,17 @@ var userSchema = new mongoose.Schema({
         default: UserTypes.Complainant,
         enum: Object.values(UserTypes),
     },
+    /* only for technitian */
     domain:{
         type: Number,
-        default: technicianDomains.Other,
         enum: Object.values(technicianDomains),
     },
-    /*  */
+    /* only for complainant */
     noOfComplaints: {
         type: Number,
-        default: 0,
     },
     solvedComplaints: {
         type: Number,
-        default: 0,
     },
 },{
     timestamps:true

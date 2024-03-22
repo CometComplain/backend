@@ -26,8 +26,6 @@ router.get("/login",(req,res)=>{
 
 router.get('/google',CatchError(Userauth));
 router.get('/google/callback',CatchError(UserCallBack));
-router.get('/protected', isLoggedin, CatchError(UserSuccessLog));
-router.get('/failure',CatchError(UserfailureLog));
 router.get('/logout',isLoggedin,CatchError(UserLogout));
 router.get('/getuser/:id',isLoggedin,CatchError(CheckRole("admin")),CatchError(getUser));
 router.get('/pingUser', CatchError(pingUser));

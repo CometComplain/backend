@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export const statusMap = {pending:0, verified:1, accepted:2, solved:3, reject:4}
 // change the attributes name according to your comfortable names
 const compliantSchema = new mongoose.Schema({
-  CompliantID: {
+  compliantID: {
     type: String,
     default: "",
     unique: true,
@@ -14,10 +14,6 @@ const compliantSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-  },
-  student_ID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
   },
   mobile: {
     type: String,
@@ -33,7 +29,9 @@ const compliantSchema = new mongoose.Schema({
       floorNo: String,
     },
   },
+  complaintHash: {
 
+  },
   status: {
     type: String,
     enum: Object.values(statusMap),

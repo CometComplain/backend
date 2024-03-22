@@ -10,14 +10,25 @@ import passport from "passport";
 import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
 import compliantRoute from "./routers/complientRoute.js"
+import fileupload from "express-fileupload"
+
+import MongoDBStoreFactory from 'connect-mongodb-session';
+const MongoDBStore = MongoDBStoreFactory(session);
+
 config({
     path:'./.env'
 })
 
+const store = MongoDBStore({
+    uri:process.env.MONGO_URL,
+    collection: 'sessions',
+})
+
+
 const app = express();
 const PORT = process.env.PORT
 
-
+app.use(fileupload())
 app.use(morgan("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
@@ -31,7 +42,8 @@ app.use(session({
     cookie: { 
         secure: false,
         maxAge: 24 * 60 * 60 * 1000, // 24 hrs
-      }
+    },
+    store,
 }));
 app.use(passport.initialize());
 app.use(passport.session());

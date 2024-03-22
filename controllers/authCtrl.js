@@ -36,17 +36,14 @@ export const UserLogout = (req, res) => {
   req.logout(() => {
     req.session.destroy((err) => {
       if (err) {
-        return res.json({
-          success: false,
-          message: "Could not log out, please try again",
-        });
+        // return res.json({
+        //   success: false,
+        //   message: "Could not log out, please try again",
+        // });
       } else {
         res.clearCookie("connect.sid");
-        return res.json({
-          success: true,
-          message: "Logout successfully",
-        });
       }
+      return res.redirect(frontendUrls.home);
     });
   });
 };
@@ -86,7 +83,6 @@ export const getUser = AsyncHandler(async (req, res) => {
 });
 
 export const pingUser = AsyncHandler(async (req, res) => {
-  console.log(req.user);
   if(req.user){
     return res.json(req.user);
   }

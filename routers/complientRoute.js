@@ -13,6 +13,7 @@ import {
   GetVerifiedCompliantsData,
   RegisterCompliant,
   SolveCompliant,
+  fileUpload,
   verifyCompliant,
 } from "../controllers/compliantCtrl.js";
 import { upload } from "../middlewares/uploadfile.js";
@@ -60,10 +61,13 @@ router.get(
   CatchError(SolveCompliant)
 );
 
+router.post("/upload", isLoggedin, fileUpload);
+
 router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
 // upload.single('write the name of the upload input tag here')
+
 router.post("/register", isLoggedin, CatchError(RegisterCompliant));
 
 //delete request
