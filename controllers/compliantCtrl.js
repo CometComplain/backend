@@ -156,14 +156,17 @@ export const fileUpload = AsyncHandler(async (req, res) => {
 export const DeleteComplaint = AsyncHandler(async (req, res) => {
     const {id} = req.user;
     const {complaintId} = req.body;
-    const user = await User.findOne({googleId: req.user.id});
+    const user = await User.findOne({googleId: id});
     const compliant = await Compliant.deleteOne({
         createdBy: user._id,
-        _id: complaintId,
+        complaintId,
     })
-    return res.status(200).json({
+    return (compliant && compliant.deletedCount === 1) ? res.status(200).json({
         status: "success",
         message: "Complaint deleted successfully",
+    }) : res.status(510).json({
+        status: "failed",
+        message: "Complaint not deleted at all",
     });
 });
 

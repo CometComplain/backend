@@ -40,6 +40,7 @@ export const UserLogout = (req, res) => {
         //   success: false,
         //   message: "Could not log out, please try again",
         // });
+        console.log('cant logout user')
       } else {
         res.clearCookie("connect.sid");
       }

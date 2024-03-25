@@ -34,7 +34,7 @@ const compliantSchema = new mongoose.Schema({
   },
   location: {
     type: {
-      buildingName: String,
+      buildingName: Number,
       roomNo: String,
       floorNo: String,
     },
