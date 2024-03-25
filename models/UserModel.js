@@ -8,11 +8,12 @@ export const UserTypes = {
 };
 
 export const technicianDomains = {
-    electrical: 0,
-    plumbing: 1,
-    carpentry: 2,
-    civil: 3,
-    other: 4,
+    mess: 0,
+    electrical: 1,
+    plumbing: 2,
+    it: 3,
+    academics: 4,
+    others: 5,
 };
 
 
