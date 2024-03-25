@@ -5,7 +5,7 @@ import {
     acceptComplaint,
     DeleteComplaint,
     fileUpload,
-    getComplaints,
+    getComplaints, getCompliantDetail,
     // GetCompliantDetail,
     // GetUnverfiedCompliantsData,
     // GetUserCompliants,
@@ -23,6 +23,7 @@ const router = express.Router();
 
 router.get('/complaints/:suburl', isLoggedin, CatchError(getComplaints));
 
+router.get('/complaintWithId/:complaintId', isLoggedin, CatchError(getCompliantDetail));
 
 // router.get("/getunverfieddata", isLoggedin, CheckRole("verifier"), CatchError(GetUnverfiedCompliantsData));
 

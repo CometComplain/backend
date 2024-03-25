@@ -1,7 +1,7 @@
 import AsyncHandler from "express-async-handler";
 import {Compliant, statusMap} from "../models/complaintModel.js";
 import {customAlphabet} from "nanoid";
-import {User} from "../models/UserModel.js";
+import {User, UserTypes} from "../models/UserModel.js";
 import crypto from "crypto";
 
 const nanoid = customAlphabet("0123456789", 10);
@@ -60,14 +60,14 @@ export const RegisterCompliant = AsyncHandler(async (req, res) => {
     const {complaint} = req.body;
     const {id} = req.user;
 
-    const user = await User.findOne({googleId: id});
+    // const user = await User.findOne({googleId: id});
 
     const hash = await getComplaintHash(complaint);
     const complaintId = await getId(complaint);
 
     const formattedComplaint = {
         ...complaint,
-        createdBy: user._id,
+        createdBy: id,
         complaintHash: hash,
         complaintId,
     };
@@ -96,19 +96,20 @@ const pageSize = 10;
 export const getComplaints = AsyncHandler(async (req, res) => {
     const {suburl} = req.params;
     const {type, page} = req.query;
-    const user = await User.findOne({googleId: req.user.id});
+    const {id} = req.user;
     let complaints;
     const parsedPage = parseInt(page, 10); // Parse page as an integer
     const parsedPageSize = parseInt(pageSize, 10); // Parse pageSize as an integer
 
     if (suburl === "complainant") {
         complaints = await Compliant.find({
-            createdBy: user._id,
+            createdBy: id,
             status: statusMap[type]
         }).sort({createdAt: -1}).skip(parsedPageSize * (parsedPage - 1)).limit(parsedPageSize);
     } else if (suburl === "verifier") {
         complaints = await Compliant.find({status: statusMap.pending}).sort({createdAt: 1}).skip(parsedPageSize * (parsedPage - 1)).limit(parsedPageSize);
     } else if (suburl === "technician") {
+        const user = await User.findOne({googleId: req.user.id});
         complaints = await Compliant.find({
             status: (type && type === "accepted" ? statusMap.accepted : statusMap.verified),
             compliantType: user.domain
@@ -152,15 +153,43 @@ export const fileUpload = AsyncHandler(async (req, res) => {
     }
 });
 
+export const getCompliantDetail = AsyncHandler(async (req, res) => {
+    // console.log("--------------->  debug  <---------------");
+    const {id} = req.user;
+    const {complaintId} = req.params;
+    // console.log("--------------->  debug  <---------------");
+    // console.log(id);
+    // console.log(complaintId);
+
+    const compliant = await Compliant.findOne({
+        createdBy: id,
+        complaintId,
+    });
+    // console.log(compliant.toObject());
+    const createdBy = await User.findOne({googleId: id});
+    // console.log(createdBy.toObject());
+    const acceptedBy = await User.findOne({_id: compliant.acceptedBy});
+    // console.log(acceptedBy?.toObject());
+    // console.log('-----------------------------------');
+    return compliant ? res.status(200).json({
+        complaint: compliant.toObject(),
+        createdBy: createdBy.toObject(),
+        acceptedBy: acceptedBy?.toObject(),
+    }) : res.status(401).json({
+        status: "failed",
+        message: "Complaint not found",
+    })
+});
 // To Delete the compliant
 export const DeleteComplaint = AsyncHandler(async (req, res) => {
     const {id} = req.user;
     const {complaintId} = req.body;
-    const user = await User.findOne({googleId: id});
+    // const user = await User.findOne({googleId: id});
     const compliant = await Compliant.deleteOne({
-        createdBy: user._id,
+        createdBy: id,
         complaintId,
     })
+
     return (compliant && compliant.deletedCount === 1) ? res.status(200).json({
         status: "success",
         message: "Complaint deleted successfully",
@@ -174,19 +203,19 @@ export const DeleteComplaint = AsyncHandler(async (req, res) => {
 export const SolveCompliant = AsyncHandler(async (req, res) => {
     const {id} = req.user;
     const {complaintId} = req.body;
-    console.log("--------------->  debug  <---------------");
-    console.log(id);
-    console.log(complaintId);
+    // console.log("--------------->  debug  <---------------");
+    // console.log(id);
+    // console.log(complaintId);
     const technician = await User.findOne({googleId: id});
-    console.log(technician.toObject());
+    // console.log(technician.toObject());
     const {domain} = technician.toObject();
-    console.log(domain);
+    // console.log(domain);
     const compliant = await Compliant.findOneAndUpdate(
         { complaintId, compliantType: domain},
         {status: statusMap.solved},
         {new: true}
     );
-    console.log(compliant);
+    // console.log(compliant);
 
     if(compliant) return res.status(200).json({
         status: "success",
@@ -203,12 +232,16 @@ export const SolveCompliant = AsyncHandler(async (req, res) => {
 export const verifyCompliant = AsyncHandler(async (req, res) => {
     const {complaintId} = req.body;
     const {id} = req.user;
-    console.log(req.body);
+    // console.log(req.body);
     const user = await User.findOne({googleId: id});
-    const compliant = await Compliant.findOneAndUpdate(
+    if(user.role !== UserTypes.Verifier) return res.status(401).json({
+        status: "failed",
+        message: "not authorized to verify the complaint",
+    });
+
+    await Compliant.findOneAndUpdate(
         {
             complaintId,
-            createdBy: user._id,
         },
         {status: statusMap.verified},
         {new: true}
@@ -223,10 +256,14 @@ export const rejectCompliant = AsyncHandler(async (req, res) => {
     const {complaintId} = req.body;
     const {id} = req.user;
     const user = await User.findOne({googleId: id});
-    const compliant = await Compliant.findOneAndUpdate(
+    if(user.role !== UserTypes.Verifier) return res.status(401).json({
+        status: "failed",
+        message: "not authorized to verify the complaint",
+    });
+
+    await Compliant.findOneAndUpdate(
         {
             complaintId,
-            createdBy: user._id,
         },
         {status: statusMap.rejected},
         {new: true}
@@ -241,6 +278,10 @@ export const acceptComplaint = AsyncHandler(async (req, res) => {
     const {complaintId} = req.body;
     const {id} = req.user;
     const user = await User.findOne({googleId: id});
+    if(user.role !== UserTypes.Verifier) return res.status(401).json({
+        status: "failed",
+        message: "not authorized to verify the complaint",
+    });
     const compliant = await Compliant.findOneAndUpdate(
         {
             complaintId,
@@ -257,12 +298,6 @@ export const acceptComplaint = AsyncHandler(async (req, res) => {
     });
 });
 
-//Get the compliant detail
-export const GetCompliantDetail = AsyncHandler(async (req, res) => {
-    const {id} = req.body;
-    const compliant = await Compliant.findById(id);
-    res.json(compliant);
-});
 
 //Get the Unverfied compliant details for verfiers
 export const GetUnverfiedCompliantsData = AsyncHandler(async (req, res) => {
