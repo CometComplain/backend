@@ -13,6 +13,8 @@ import {
   GetVerifiedCompliantsData,
   RegisterCompliant,
   SolveCompliant,
+  fileUpload,
+  getComplaints,
   verifyCompliant,
 } from "../controllers/compliantCtrl.js";
 import { upload } from "../middlewares/uploadfile.js";
@@ -25,35 +27,46 @@ router.get(
   CheckRole("admin"),
   CatchError(GetCompliantDetail)
 );
+
+
+router.get('complaints/:suburl', isLoggedin, CatchError(getComplaints));
+
+
 router.get(
   "/getunverfieddata",
   isLoggedin,
   CheckRole("verifier"),
   CatchError(GetUnverfiedCompliantsData)
 );
+
 router.get(
   "/getverfieddata",
   isLoggedin,
   TechnicianRole,
   CatchError(GetVerifiedCompliantsData)
 );
-router.get(
-  "/verify/:id",
+
+router.post(
+  "/verify",
   isLoggedin,
   CheckRole("verifier"),
   CatchError(verifyCompliant)
 );
+
 router.get(
   "/solve/:id",
   isLoggedin,
   TechnicianRole,
   CatchError(SolveCompliant)
 );
+
+router.post("/upload", isLoggedin, fileUpload);
+
 router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
-//upload.single('write the name of the upload input tag here')
-router.post("/register", isLoggedin,CatchError(RegisterCompliant));
+// upload.single('write the name of the upload input tag here')
+router.post("/register", isLoggedin, CatchError(RegisterCompliant));
 
 //delete request
 router.delete("/delete/:id", isLoggedin, CatchError(DeleteComplient));
