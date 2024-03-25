@@ -52,8 +52,8 @@ router.get(
 router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
-// upload.single('write the name of the upload input tag here')
-router.post("/register", isLoggedin, CatchError(RegisterCompliant));
+//upload.single('write the name of the upload input tag here')
+router.post("/register", isLoggedin,CatchError(RegisterCompliant));
 
 //delete request
 router.delete("/delete/:id", isLoggedin, CatchError(DeleteComplient));
