@@ -2,74 +2,74 @@ import express from "express";
 import bodyParser from "body-parser";
 import { config } from "dotenv";
 import morgan from "morgan";
-import authroute from "./routers/authRoute.js"
+import authroute from "./routers/authRoute.js";
 import { connectDb } from "./config/DbConnect.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 import session from "express-session";
 import passport from "passport";
 import { CatchError } from "./middlewares/CatchError.js";
-import cookieParser from 'cookie-parser';
-import compliantRoute from "./routers/complientRoute.js"
-import fileupload from "express-fileupload"
+import cookieParser from "cookie-parser";
+import complaintRoute from "./routers/complientRoute.js";
+import fileupload from "express-fileupload";
+import { backendIp } from "./constants.js";
+import MongoDBStoreFactory from "connect-mongodb-session";
 
-import MongoDBStoreFactory from 'connect-mongodb-session';
 const MongoDBStore = MongoDBStoreFactory(session);
 
 config({
-    path:'./.env'
-})
+    path: "./.env",
+});
 
 const store = MongoDBStore({
-    uri:process.env.MONGO_URL,
-    collection: 'sessions',
-})
-
+    uri: process.env.MONGO_URL,
+    collection: "sessions",
+});
 
 const app = express();
-const PORT = process.env.PORT
+const PORT = process.env.PORT;
 
-app.use(fileupload())
-app.use(morgan("dev"))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:true}))
-app.set('trust proxy', 1);
+app.use(fileupload());
+app.use(morgan("dev"));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.set("trust proxy", 1);
 connectDb();
 app.use(cookieParser());
-app.use(session({
-    secret: process.env.SESSION_SECRET_KEY,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { 
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hrs
-    },
-    store,
-}));
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET_KEY,
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+            secure: false,
+            maxAge: 24 * 60 * 60 * 1000, // 24 hrs
+        },
+        store,
+    })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/grievance/auth',authroute)
-app.use('/grievance',compliantRoute)
+app.use("/grievance/auth", authroute);
+app.use("/grievance", complaintRoute);
 
-app.get("/",(req,res)=>{
-    res.send("Hello World")  // testing
+app.get("/", (req, res) => {
+    res.send("Hello World"); // testing
 });
 
-app.all("*",(req,res,next)=>{
+app.all("*", (req, res, next) => {
     const err = new Error(`Route ${req.originalUrl} not Found`);
-    err.statusCode = 404,
-    res.status(404).json({
-        message:err.message,
-    })
+    (err.statusCode = 404),
+        res.status(404).json({
+            message: err.message,
+        });
     // next(err)
-})
+});
 
-
-app.use(CatchError)
+app.use(CatchError);
 app.use(notFound);
-app.use(errorHandler)
+app.use(errorHandler);
 
-app.listen(PORT,(req,res)=>{
+app.listen(PORT, backendIp, (req, res) => {
     console.log(`port is running on ${PORT}`);
-})
-
+});

@@ -16,44 +16,46 @@ export const technicianDomains = {
     others: 5,
 };
 
+var userSchema = new mongoose.Schema(
+    {
+        googleId: {
+            type: String,
+            unique: true,
+        },
+        rollNo: {
+            type: String,
+            unique: true,
+        },
+        displayName: String,
+        email: {
+            type: String,
+            unique: true,
+        },
+        IsBlock: {
+            type: Boolean,
+            default: false,
+        },
+        userType: {
+            type: Number,
+            default: UserTypes.Complainant,
+            enum: Object.values(UserTypes),
+        },
+        /* only for technitian */
+        domain: {
+            type: Number,
+            enum: Object.values(technicianDomains),
+        },
+        /* only for complainant */
+        noOfComplaints: {
+            type: Number,
+        },
+        noOfSolvedComplaints: {
+            type: Number,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
 
-var userSchema = new mongoose.Schema({
-    googleId: {
-        type:String,
-        unique:true,
-    },
-    rollNo: {
-        type: String,
-        unique: true,
-    },
-    displayName: String,
-    email: {
-        type:String,
-        unique:true
-    },
-    IsBlock:{
-        type:Boolean,
-        default:false
-    },
-    userType: {
-        type: Number,
-        default: UserTypes.Complainant,
-        enum: Object.values(UserTypes),
-    },
-    /* only for technitian */
-    domain:{
-        type: Number,
-        enum: Object.values(technicianDomains),
-    },
-    /* only for complainant */
-    noOfComplaints: {
-        type: Number,
-    },
-    solvedComplaints: {
-        type: Number,
-    },
-},{
-    timestamps:true
-});
-
-export const User = mongoose.model('User', userSchema);
+export const User = mongoose.model("User", userSchema);
