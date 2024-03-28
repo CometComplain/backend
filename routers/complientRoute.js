@@ -1,75 +1,50 @@
 import express from "express";
-import { CatchError } from "../middlewares/CatchError.js";
+import {CatchError} from "../middlewares/CatchError.js";
+import {CheckRole, isLoggedin,} from "../middlewares/authMiddleware.js";
 import {
-  CheckRole,
-  TechnicianRole,
-  isLoggedin,
-} from "../middlewares/authMiddleware.js";
-import {
-  DeleteComplient,
-  GetCompliantDetail,
-  GetUnverfiedCompliantsData,
-  GetUserCompliants,
-  GetVerifiedCompliantsData,
-  RegisterCompliant,
-  SolveCompliant,
-  fileUpload,
-  getComplaints,
-  verifyCompliant,
+    acceptComplaint,
+    DeleteComplaint,
+    fileUpload,
+    getComplaints, getCompliantDetail,
+    // GetCompliantDetail,
+    // GetUnverfiedCompliantsData,
+    // GetUserCompliants,
+    // GetVerifiedCompliantsData,
+    RegisterCompliant,
+    rejectCompliant,
+    SolveCompliant,
+    verifyCompliant,
 } from "../controllers/compliantCtrl.js";
-import { upload } from "../middlewares/uploadfile.js";
 
 const router = express.Router();
 //get request
-router.get(
-  "/getcompliants",
-  isLoggedin,
-  CheckRole("admin"),
-  CatchError(GetCompliantDetail)
-);
+// router.get("/getcompliants", isLoggedin, CheckRole("admin"), CatchError(GetCompliantDetail));
 
 
-router.get('complaints/:suburl', isLoggedin, CatchError(getComplaints));
+router.get('/complaints/:suburl', isLoggedin, CatchError(getComplaints));
 
+router.get('/complaintWithId/:complaintId', isLoggedin, CatchError(getCompliantDetail));
 
-router.get(
-  "/getunverfieddata",
-  isLoggedin,
-  CheckRole("verifier"),
-  CatchError(GetUnverfiedCompliantsData)
-);
+// router.get("/getunverfieddata", isLoggedin, CheckRole("verifier"), CatchError(GetUnverfiedCompliantsData));
 
-router.get(
-  "/getverfieddata",
-  isLoggedin,
-  TechnicianRole,
-  CatchError(GetVerifiedCompliantsData)
-);
+// router.get("/getverfieddata", isLoggedin, TechnicianRole, CatchError(GetVerifiedCompliantsData));
 
-router.post(
-  "/verify",
-  isLoggedin,
-  CheckRole("verifier"),
-  CatchError(verifyCompliant)
-);
+router.post("/verify", isLoggedin, CatchError(verifyCompliant));
 
-router.get(
-  "/solve/:id",
-  isLoggedin,
-  TechnicianRole,
-  CatchError(SolveCompliant)
-);
+router.post("/solve", isLoggedin, CatchError(SolveCompliant));
+router.post("/reject", isLoggedin, CatchError(rejectCompliant));
+router.post("/accept", isLoggedin, CatchError(acceptComplaint));
 
 router.post("/upload", isLoggedin, fileUpload);
 
-router.get("/getusercompliants", isLoggedin, GetUserCompliants);
+// router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
 // upload.single('write the name of the upload input tag here')
 router.post("/register", isLoggedin, CatchError(RegisterCompliant));
 
 //delete request
-router.delete("/delete/:id", isLoggedin, CatchError(DeleteComplient));
+router.delete("/delete", isLoggedin, CatchError(DeleteComplaint));
 
 //put request
 

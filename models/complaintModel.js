@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const statusMap = {pending:0, verified:1, accepted:2, solved:3, reject:4}
+export const statusMap = {pending:0, verified:1, accepted:2, solved:3, rejected:4}
 export const typesMap = {
   mess: 0,
   electrical: 1,
@@ -32,34 +32,39 @@ const compliantSchema = new mongoose.Schema({
     enum: Object.values(typesMap),
     required: true,
   },
-  // location: {
-  //   type: {
-  //     buildingName: String,
-  //     roomNo: String,
-  //     floorNo: String,
-  //   },
-  //   required: true,
-  // },
+  location: {
+    type: {
+      buildingName: Number,
+      roomNo: String,
+      floorNo: String,
+    },
+    required: true,
+  },
   complaintHash: {
     type: String,
     unique: true,
     required: true,
   },
   status: {
-    type: String,
+    type: Number,
     enum: Object.values(statusMap),
     default: statusMap.pending,
   },
 
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:"User",
+    type: String,
     required: true,
   },
   
   accepytedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref:"User",
+  },
+  proof: {
+    type: String,
+  },
+  completionProof: {
+    type: String,
   },
 });
 

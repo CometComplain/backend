@@ -40,6 +40,7 @@ export const UserLogout = (req, res) => {
         //   success: false,
         //   message: "Could not log out, please try again",
         // });
+        console.log('cant logout user')
       } else {
         res.clearCookie("connect.sid");
       }
@@ -82,9 +83,27 @@ export const getUser = AsyncHandler(async (req, res) => {
   res.json(user);
 });
 
+const formatUser = (user) => {
+  const _user = user.toObject();
+
+  const role = user.userType;
+  delete _user.userType;
+  delete _user.__v;
+  delete _user._id;
+  delete _user.createdAt;
+  delete _user.updatedAt;
+  delete _user.googleId;
+  return {
+    ..._user,
+    role,
+  };
+}
+
 export const pingUser = AsyncHandler(async (req, res) => {
   if(req.user){
-    return res.json(req.user);
+    const user = await User.findOne({googleId: req.user.id});
+
+    res.json(formatUser(user));
   }
   else{
     res.status(401).json({message:"User not found"});

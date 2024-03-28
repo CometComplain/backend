@@ -4,8 +4,7 @@ import { User, UserTypes } from "../models/UserModel.js";
 import AsyncHandler from "express-async-handler";
 
 const getRollNo = (email) => {
-  const match = email.match(/\d{2}[a-zA-Z]{3}\d{1,4}/);
-  console.log(match);
+  const match = email.match(/\d{2}[a-zA-Z]{3}\d{1,4}$/);
 
   if (match) {
     return '22' + match[0]; // found a roll number and return it
