@@ -6,7 +6,6 @@ import crypto from "crypto";
 import router from "../routers/complientRoute.js";
 import { format } from "path";
 
-const nanoid = customAlphabet("0123456789", 10);
 
 /*
 complaint from frontend format = {
@@ -39,7 +38,9 @@ complaint format = {
 }
 */
 
+
 const getId = async (complaint) => {
+  const nanoid = customAlphabet("0123456789", 10);
   // todo: tobe chanced accordingly to the id generating scheme
   const id = nanoid();
   return id;

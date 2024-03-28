@@ -43,7 +43,6 @@ var userSchema = new mongoose.Schema({
     domain:{
         type: Number,
         enum: Object.values(technicianDomains),
-        required: true,
     },
     /* only for complainant */
     noOfComplaints: {
