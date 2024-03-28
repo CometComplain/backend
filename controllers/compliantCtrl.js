@@ -59,28 +59,37 @@ const getComplaintHash = async (complaint) => {
 };
 
 //  To Register the compliant
-export const RegisterCompliant = AsyncHandler(async (req, res) => {
+export const RegisterComplaint = AsyncHandler(async (req, res) => {
   const { complaint } = req.body;
   const { id } = req.user;
 
-  const user = await User.findOne({ googleId: id });
+  // const user = await User.findOne({googleId: id});
 
   const hash = await getComplaintHash(complaint);
   const complaintId = await getId(complaint);
 
   const formattedComplaint = {
-    ...complaint,
-    createdBy: user._id,
-    complaintHash: hash,
-    complaintId,
+      ...complaint,
+      createdBy: id,
+      complaintHash: hash,
+      complaintId,
   };
 
-  const createdComplaint = await Compliant.create(formattedComplaint);
-
+  const createdComplaint = await Complaint.create(formattedComplaint);
+  const user = await User.findOneAndUpdate(
+      {
+          googleId: id,
+          userType: UserTypes.Complainant,
+      },
+      {
+          $inc: { noOfComplaints: 1 },
+      }
+  );
+  console.log(user);
   return res.status(200).json({
-    status: "success",
-    message: "Complaint registered successfully",
-    id: createdComplaint.complaintId,
+      status: "success",
+      message: "Complaint registered successfully",
+      id: createdComplaint.complaintId,
   });
 });
 
@@ -144,23 +153,30 @@ export const fileUpload = AsyncHandler(async (req, res) => {
 
 // To Delete the compliant
 export const DeleteComplient = AsyncHandler(async (req, res) => {
-  const { id } = req.body;
-  const compliant = await Compliant.findByIdAndDelete({ _id: id });
-  res.json(compliant);
+  const { complaintId } = req.body;
+  const compliant = await Compliant.findByIdAndDelete({ complaintId });
+
+  if(!compliant) throw new Error("Compliant Not Found")
+  res.status(200).json({
+    status:"success",
+    message:"Succesfully Deleted"
+  });
 });
 
 //to make isSloved boolean to true. this is done by technician
 export const SolveCompliant = AsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  const solvedCompliant = await Compliant.findById(id);
-  if (solvedCompliant && solvedCompliant.isVerified) {
+  const { complaintId } = req.params;
+  const solvedCompliant = await Compliant.findOne({complaintId});
+  if (solvedCompliant && solvedCompliant.status === 2) {
     const updatedCompliant = await Compliant.findByIdAndUpdate(
-      id,
-      { isSolved: true },
+      {complaintId},
+      { status: statusMap.solved },
       { new: true }
     );
-    res.json(updatedCompliant);
+    res.status(200).json({
+      status: "success",
+      message:"Succesfully Solved"
+    })
   } else {
     throw new Error("complaint is not found or not verified");
   }
@@ -168,10 +184,9 @@ export const SolveCompliant = AsyncHandler(async (req, res) => {
 
 //to make isVerified boolean to true. this is done by Verifier and we will give a id for complient after verifing the compliant
 export const verifyCompliant = AsyncHandler(async (req, res) => {
-  const { complaintId: id } = req.body;
-  console.log(req.body);
+  const { complaintId } = req.body;
   const compliant = await Compliant.findOneAndUpdate(
-    id,
+    { complaintId },
     { status: statusMap.verified },
     { new: true }
   );
@@ -183,35 +198,35 @@ export const verifyCompliant = AsyncHandler(async (req, res) => {
 
 //Get the compliant detail
 export const GetCompliantDetail = AsyncHandler(async (req, res) => {
-  const { id } = req.body;
-  const compliant = await Compliant.findById(id);
-  res.json(compliant);
+  const  { complaintId }  = req.body;
+  const compliant = await Compliant.findById({complaintId});
+  res.status(200).json(compliant);
 });
 
 //Get the Unverfied compliant details for verfiers
 export const GetUnverfiedCompliantsData = AsyncHandler(async (req, res) => {
-  const unverifiedComplaints = await Compliant.find({ isVerified: false });
+
+  const unverifiedComplaints = await Compliant.find({ status: statusMap.pending });
   res.json(unverifiedComplaints);
+  
 });
 
 //Get the verfied compliant for technicians and particular type of technician
 export const GetVerifiedCompliantsData = AsyncHandler(async (req, res) => {
-  const id = req.user.id;
+  const { id } = req.user;
   const technician = await User.findOne({ googleId: id });
-  const type = technician.role.split(" ")[0];
+  const ComplainantType = technician.domain
   const verifyCompliant = await Compliant.find({
-    isVerified: true,
-    isSolved: false,
-    compliantType: type,
+    status:statusMap.verified,
+    compliantType: ComplainantType,
   });
-  res.json(verifyCompliant);
+  res.status(200).json(verifyCompliant);
 });
 
 // Get solved compliants
 export const GetSolvedCompliantsData = AsyncHandler(async (req, res) => {
   const solvedCompliant = await Compliant.find({
-    isVerified: true,
-    isSolved: true,
+    status:statusMap.solved
   });
   res.json(solvedCompliant);
 });
@@ -228,31 +243,43 @@ export const GetUserCompliants = AsyncHandler(async (req, res) => {
 export const GetUserSolvedCompliants = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const complaintsdata = await Compliant.find({
-    userId: id,
-    isSolved: true,
-    isVerified: true,
+    createdBy: id,
+    status:statusMap.solved
   });
-  req.json(complaintsdata);
+  res.status(200).json(complaintsdata);
 });
 
 // This function is used to get the verified compliants of particular user
 export const GetUserverifiedCompliants = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const complaintsdata = await Compliant.find({
-    userId: id,
-    isSolved: false,
-    isVerified: true,
+    createdBy: id,
+    status:statusMap.verified
   });
-  req.json(complaintsdata);
+  res.status(200).json(complaintsdata);
 });
 
 // This function is used to get the Unsolved compliants of particular user
 export const GetUserUnsolvedCompliants = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const complaintsdata = await Compliant.find({
-    userId: id,
-    isSolved: false,
-    isVerified: false,
+    createdBy: id,
+    status: statusMap.accepted
   });
-  req.json(complaintsdata);
+  res.status(200).json(complaintsdata);
 });
+
+//this function is used to accept the compliant
+export const acceptComplaint = AsyncHandler(async (req,res)=>{
+    const { complaintId } = req.body
+    const { id } = req.user
+    const foundUser = await User.find({googleId:id})
+    req.body = foundUser;
+    const AcceptedCompliant = await Compliant.findOneAndUpdate({complaintId},{status:2,accepytedBy:foundUser._id})
+    if(!foundUser) throw new Error("Please Login")
+    if(!AcceptedCompliant) throw new Error("Compliant Not Found")
+    res.status(200).json({
+      status:"success",
+      message:"successfully accepted"
+    })
+})

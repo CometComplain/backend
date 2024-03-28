@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
-export const statusMap = {pending:0, verified:1, accepted:2, solved:3, rejected:4}
+export const statusMap = {
+  pending: 0,
+  verified: 1,
+  accepted: 2,
+  solved: 3,
+  rejected: 4,
+};
 export const typesMap = {
   mess: 0,
   electrical: 1,
@@ -8,7 +14,7 @@ export const typesMap = {
   it: 3,
   academics: 4,
   others: 5,
-}
+};
 
 // change the attributes name according to your comfortable names
 const compliantSchema = new mongoose.Schema({
@@ -55,10 +61,10 @@ const compliantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  
+
   accepytedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:"User",
+    ref: "User",
   },
   proof: {
     type: String,
@@ -69,6 +75,5 @@ const compliantSchema = new mongoose.Schema({
 });
 
 compliantSchema.index({ complaintId: 1 }, { unique: true });
-
 
 export const Compliant = mongoose.model("Compliant", compliantSchema);

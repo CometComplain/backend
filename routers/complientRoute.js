@@ -1,29 +1,35 @@
 import express from "express";
-import {CatchError} from "../middlewares/CatchError.js";
-import {CheckRole, isLoggedin,} from "../middlewares/authMiddleware.js";
+import { CatchError } from "../middlewares/CatchError.js";
+import { CheckRole, isLoggedin } from "../middlewares/authMiddleware.js";
 import {
-    acceptComplaint,
-    DeleteComplaint,
-    fileUpload,
-    getComplaints, getCompliantDetail,
-    // GetCompliantDetail,
-    // GetUnverfiedCompliantsData,
-    // GetUserCompliants,
-    // GetVerifiedCompliantsData,
-    RegisterCompliant,
-    rejectCompliant,
-    SolveCompliant,
-    verifyCompliant,
+  acceptComplaint,
+  DeleteComplient,
+  fileUpload,
+  getComplaints,
+  GetCompliantDetail,
+  // GetCompliantDetail,
+  // GetUnverfiedCompliantsData,
+  // GetUserCompliants,
+  // GetVerifiedCompliantsData,
+  RegisterCompliant,
+  SolveCompliant,
+  verifyCompliant,
 } from "../controllers/compliantCtrl.js";
 
+import { upload } from "../middlewares/uploadfile.js";
+import { generateComplaintId } from "../middlewares/getCompliantId.js";
 const router = express.Router();
+
 //get request
 // router.get("/getcompliants", isLoggedin, CheckRole("admin"), CatchError(GetCompliantDetail));
 
+router.get("/complaints/:suburl", isLoggedin, CatchError(getComplaints));
 
-router.get('/complaints/:suburl', isLoggedin, CatchError(getComplaints));
-
-router.get('/complaintWithId/:complaintId', isLoggedin, CatchError(getCompliantDetail));
+router.get(
+  "/complaintWithId/:complaintId",
+  isLoggedin,
+  CatchError(GetCompliantDetail)
+);
 
 // router.get("/getunverfieddata", isLoggedin, CheckRole("verifier"), CatchError(GetUnverfiedCompliantsData));
 
@@ -32,19 +38,35 @@ router.get('/complaintWithId/:complaintId', isLoggedin, CatchError(getCompliantD
 router.post("/verify", isLoggedin, CatchError(verifyCompliant));
 
 router.post("/solve", isLoggedin, CatchError(SolveCompliant));
-router.post("/reject", isLoggedin, CatchError(rejectCompliant));
+// router.post("/reject", isLoggedin, CatchError(rejectCompliant));
 router.post("/accept", isLoggedin, CatchError(acceptComplaint));
-
-router.post("/upload", isLoggedin, fileUpload);
 
 // router.get("/getusercompliants", isLoggedin, GetUserCompliants);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
 // upload.single('write the name of the upload input tag here')
-router.post("/register", isLoggedin, CatchError(RegisterCompliant));
+router.post(
+  "/register",
+  isLoggedin,
+  (req, res, next) => {
+    upload.single("proof")(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        res.status(500).json({ error: err.message });
+      } else if (err) {
+        // An unknown error occurred when uploading.
+        res.status(500).json({ error: err.message });
+      }
+
+      // Everything went fine, proceed with the next middleware
+      next();
+    });
+  },
+  CatchError(RegisterCompliant)
+);
 
 //delete request
-router.delete("/delete", isLoggedin, CatchError(DeleteComplaint));
+router.delete("/delete", isLoggedin, CatchError(DeleteComplient));
 
 //put request
 
