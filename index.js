@@ -9,26 +9,24 @@ import session from "express-session";
 import passport from "passport";
 import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
-import compliantRoute from "./routers/complientRoute.js"
-import fileupload from "express-fileupload"
-
-import MongoDBStoreFactory from 'connect-mongodb-session';
-const MongoDBStore = MongoDBStoreFactory(session);
+import complaintRoute from "./routers/complaintRoute.js"
+import MongoDBStore from 'connect-mongodb-session';
 
 config({
     path:'./.env'
 })
 
-const store = MongoDBStore({
-    uri:process.env.MONGO_URL,
-    collection: 'sessions',
-})
 
+const MongoDBStoreInstance = MongoDBStore(session);
+
+const store = new MongoDBStoreInstance({
+    uri: process.env.MONGO_URL,
+    collection: 'sessions',
+});
 
 const app = express();
 const PORT = process.env.PORT
 
-app.use(fileupload())
 app.use(morgan("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
@@ -49,7 +47,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/grievance/auth',authroute)
-app.use('/grievance',compliantRoute)
+app.use('/grievance',complaintRoute)
 
 app.get("/",(req,res)=>{
     res.send("Hello World")  // testing
@@ -64,12 +62,10 @@ app.all("*",(req,res,next)=>{
     // next(err)
 })
 
-
-app.use(CatchError)
+// app.use(CatchError) // should we use catchError  middleware
 app.use(notFound);
 app.use(errorHandler)
 
 app.listen(PORT,(req,res)=>{
     console.log(`port is running on ${PORT}`);
 })
-

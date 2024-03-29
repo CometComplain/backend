@@ -17,7 +17,7 @@ export const typesMap = {
 };
 
 // change the attributes name according to your comfortable names
-const compliantSchema = new mongoose.Schema({
+const complaintSchema = new mongoose.Schema({
   complaintId: {
     type: String,
     required: true,
@@ -33,7 +33,7 @@ const compliantSchema = new mongoose.Schema({
   mobile: {
     type: String,
   },
-  compliantType: {
+  complaintType: {
     type: Number,
     enum: Object.values(typesMap),
     required: true,
@@ -74,6 +74,6 @@ const compliantSchema = new mongoose.Schema({
   },
 });
 
-compliantSchema.index({ complaintId: 1 }, { unique: true });
+complaintSchema.index({ complaintId: 1 }, { unique: true });
 
-export const Compliant = mongoose.model("Compliant", compliantSchema);
+export const Complaint = mongoose.model("Complaint", complaintSchema);

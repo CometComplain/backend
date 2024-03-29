@@ -11,13 +11,14 @@ import {
   // GetUnverfiedCompliantsData,
   // GetUserCompliants,
   // GetVerifiedCompliantsData,
-  RegisterCompliant,
+  RegisterComplaint,
   SolveCompliant,
   verifyCompliant,
-} from "../controllers/compliantCtrl.js";
+} from "../controllers/complaintCtrl.js";
 
-import { upload } from "../middlewares/uploadfile.js";
-import { generateComplaintId } from "../middlewares/getCompliantId.js";
+import { generateComplaintId } from "../middlewares/getComplaintId.js";
+import multer from "multer";
+import {  upload } from "../middlewares/uploadfile.js";
 const router = express.Router();
 
 //get request
@@ -42,28 +43,11 @@ router.post("/solve", isLoggedin, CatchError(SolveCompliant));
 router.post("/accept", isLoggedin, CatchError(acceptComplaint));
 
 // router.get("/getusercompliants", isLoggedin, GetUserCompliants);
+
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
 // upload.single('write the name of the upload input tag here')
-router.post(
-  "/register",
-  isLoggedin,
-  (req, res, next) => {
-    upload.single("proof")(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-        // A Multer error occurred when uploading.
-        res.status(500).json({ error: err.message });
-      } else if (err) {
-        // An unknown error occurred when uploading.
-        res.status(500).json({ error: err.message });
-      }
-
-      // Everything went fine, proceed with the next middleware
-      next();
-    });
-  },
-  CatchError(RegisterCompliant)
-);
+router.post('/register' , generateComplaintId, RegisterComplaint);
 
 //delete request
 router.delete("/delete", isLoggedin, CatchError(DeleteComplient));

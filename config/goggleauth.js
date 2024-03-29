@@ -10,7 +10,7 @@ const getRollNo = (email) => {
     return '22' + match[0]; // found a roll number and return it
 
   } else {
-    return '2022bcy0031' // default roll number removed after testing
+    return '2022bcy0100' // default roll number removed after testing
   }
 }
 
@@ -31,21 +31,31 @@ export function GoogleAuth() {
 
           // todo: check weather the user with this email is allowed or not
 
-          let user = await User.findOne({ googleId: profile.id });
+          let user = await User.findOne({ email: userEmail });
         
           // If the user doesn't exist, create a new user
           if (!user) {
+            if (!/@iiitkottayam\.ac\.in$/.test(userEmail)) {
+              throw new Error("Invalid email domain. Must be @iiitkottayam.ac.in");
+            }
             const rollNo = getRollNo(userEmail);
             await User.create({
               googleId: profile.id,
-              displayName: profile.displayName,
+              displayName: profile.givenName,
               email: userEmail,
               rollNo,
               noOfComplaints:0,
               solvedComplaints:0,
             });
+          } else {
+            if(!user.googleId){
+                user.googleId =  profile.id;
+                user.displayName =  profile.displayName;
+                user.email =  profile.email;
+                await user.save();
+            }
           }
-          
+    
           // Pass the profile information to the next middleware
           return cb(null, profile);
         } catch (error) {
