@@ -1,11 +1,10 @@
 import AsyncHandler from "express-async-handler";
 import { Compliant, statusMap } from "../models/complaintModel.js";
 import { customAlphabet } from "nanoid";
-import { User } from "../models/UserModel.js";
+import { User, UserTypes } from "../models/UserModel.js";
 import crypto from "crypto";
 import router from "../routers/complientRoute.js";
 import { format } from "path";
-
 
 /*
 complaint from frontend format = {
@@ -39,12 +38,6 @@ complaint format = {
 */
 
 
-const getId = async (complaint) => {
-  const nanoid = customAlphabet("0123456789", 10);
-  // todo: tobe chanced accordingly to the id generating scheme
-  const id = nanoid();
-  return id;
-};
 
 const getComplaintHash = async (complaint) => {
   const hash = crypto.createHash("sha256");
@@ -60,13 +53,15 @@ const getComplaintHash = async (complaint) => {
 
 //  To Register the compliant
 export const RegisterComplaint = AsyncHandler(async (req, res) => {
-  const { complaint } = req.body;
+  try {
+    const data = JSON.parse(req.body.data)
+  const { complaint } = data;
   const { id } = req.user;
 
   // const user = await User.findOne({googleId: id});
 
   const hash = await getComplaintHash(complaint);
-  const complaintId = await getId(complaint);
+  const complaintId = req.body.complaintId
 
   const formattedComplaint = {
       ...complaint,
@@ -75,7 +70,7 @@ export const RegisterComplaint = AsyncHandler(async (req, res) => {
       complaintId,
   };
 
-  const createdComplaint = await Complaint.create(formattedComplaint);
+  const createdComplaint = await Compliant.create(formattedComplaint);
   const user = await User.findOneAndUpdate(
       {
           googleId: id,
@@ -85,12 +80,16 @@ export const RegisterComplaint = AsyncHandler(async (req, res) => {
           $inc: { noOfComplaints: 1 },
       }
   );
-  console.log(user);
   return res.status(200).json({
       status: "success",
       message: "Complaint registered successfully",
       id: createdComplaint.complaintId,
   });
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+  
 });
 
 // testing

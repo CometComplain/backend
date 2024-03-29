@@ -11,7 +11,7 @@ import {
   // GetUnverfiedCompliantsData,
   // GetUserCompliants,
   // GetVerifiedCompliantsData,
-  RegisterCompliant,
+  RegisterComplaint,
   SolveCompliant,
   verifyCompliant,
 } from "../controllers/compliantCtrl.js";
@@ -48,21 +48,8 @@ router.post("/accept", isLoggedin, CatchError(acceptComplaint));
 router.post(
   "/register",
   isLoggedin,
-  (req, res, next) => {
-    upload.single("proof")(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-        // A Multer error occurred when uploading.
-        res.status(500).json({ error: err.message });
-      } else if (err) {
-        // An unknown error occurred when uploading.
-        res.status(500).json({ error: err.message });
-      }
-
-      // Everything went fine, proceed with the next middleware
-      next();
-    });
-  },
-  CatchError(RegisterCompliant)
+  generateComplaintId,
+  CatchError(RegisterComplaint)
 );
 
 //delete request

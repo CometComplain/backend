@@ -33,7 +33,7 @@ const compliantSchema = new mongoose.Schema({
   mobile: {
     type: String,
   },
-  compliantType: {
+  complaintType: {
     type: Number,
     enum: Object.values(typesMap),
     required: true,
