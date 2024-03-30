@@ -4,20 +4,16 @@ import { CheckRole, isLoggedin } from "../middlewares/authMiddleware.js";
 import {
   acceptComplaint,
   DeleteComplient,
-  fileUpload,
-  getComplaints,
-  GetComplaintDetail,
-  // GetComplaintDetail,
-  // GetUnverfiedComplaintsData,
-  // GetUserComplaints,
-  // GetVerifiedComplaintsData,
   RegisterComplaint,
   SolveComplaint,
   verifyComplaint,
-} from "../controllers/complaintCtrl.js";
+} from "../controllers/complaintCtrl.js"
 
 import { uploadFileToCloudinary } from "../middlewares/uploadfile.js";
 import { generateComplaintId } from "../middlewares/getComplaintId.js";
+import { CheckFileType } from "../middlewares/checkFileType.js";
+import displayCounts from "../controllers/getCountCompliants.js"
+import { getComplaints } from "../controllers/GetComplaintCtrl.js";
 const router = express.Router();
 
 //get request
@@ -25,11 +21,11 @@ const router = express.Router();
 
 router.get("/complaints/:suburl", isLoggedin, CatchError(getComplaints));
 
-router.get(
-  "/complaintWithId/:complaintId",
-  isLoggedin,
-  CatchError(GetComplaintDetail)
-);
+// router.get(
+//   "/complaintWithId/:complaintId",
+//   isLoggedin,
+//   CatchError(GetComplaintDetail)
+// );
 
 // router.get("/getunverfieddata", isLoggedin, CheckRole("verifier"), CatchError(GetUnverfiedComplaintsData));
 
@@ -49,9 +45,13 @@ router.post(
   "/register",
   isLoggedin,
   generateComplaintId,
-  uploadFileToCloudinary,
-  CatchError(RegisterComplaint)
+  CheckFileType,
+  CatchError(RegisterComplaint),
+  CatchError(uploadFileToCloudinary),
+  
 );
+
+router.get('/count',displayCounts)
 
 //delete request
 router.delete("/delete", isLoggedin, CatchError(DeleteComplient));

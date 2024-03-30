@@ -72,9 +72,6 @@ const ComplaintSchema = new mongoose.Schema({
   completionProof: {
     type: String,
   },
-  fileUrl:{
-    type:String,
-  }
 });
 
 ComplaintSchema.index({ complaintId: 1 }, { unique: true });

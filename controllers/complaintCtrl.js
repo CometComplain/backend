@@ -79,7 +79,7 @@ export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
       {
           $inc: { noOfComplaints: 1 },
       }
-  );
+    );
     res.status(200).json({
       status: "success",
       message: "Complaint registered successfully",
@@ -103,58 +103,33 @@ export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
 // });
 
 
-const pageSize = 10;
 
-export const getComplaints = AsyncHandler(async (req, res) => {
-  const { suburl } = req.params;
-  const { type, page } = req.query;
-  console.log("-------------------> debug <-------------------");
-  console.log(suburl);
-  console.log(type);
-  console.log(page);
-  console.log("-----------------------------------------------");
-  const user = await User.findOne({ googleId: req.user.id });
-  let complaints;
-  if (suburl === "Complainant") {
-    complaints = await Complaint.find({ createdBy: user._id }).sort({createdAt: -1}).skip(pageSize * (page - 1)).limit(pageSize);
-  }
-  else if (suburl === "Verifier") {
-    complaints = await Complaint.find({ status: statusMap.pending }).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
-  }
-  else if (suburl === "Technician") {
-    complaints = await Complaint.find({ status: statusMap.verified, ComplaintType: user.domain}).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
-  }
-  else {
-    complaints = [];
-  }
-  return complaints.length === pageSize ? res.json({ complaints, nextPage: page + pageSize }) : res.json({ complaints });
-});
 
-export const fileUpload = AsyncHandler(async (req, res) => {
-  try {
-    if (!req.files || !req.files.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-    const file = req.files.file;
-    const fileName = file.name;
-    const tempFilePath = `temp/${fileName}`; // Specify the path to your temporary directory
-    await file.mv(tempFilePath); // Save the file to the temporary directory
+// export const fileUpload = AsyncHandler(async (req, res) => {
+//   try {
+//     if (!req.files || !req.files.file) {
+//       return res.status(400).json({ error: "No file uploaded" });
+//     }
+//     const file = req.files.file;
+//     const fileName = file.name;
+//     const tempFilePath = `temp/${fileName}`; // Specify the path to your temporary directory
+//     await file.mv(tempFilePath); // Save the file to the temporary directory
 
-    res.status(200).json({
-      message: "File saved successfully",
-      filePath: tempFilePath,
-      staus: "success",
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     res.status(200).json({
+//       message: "File saved successfully",
+//       filePath: tempFilePath,
+//       staus: "success",
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 // To Delete the Complaint
 export const DeleteComplient = AsyncHandler(async (req, res) => {
   const { complaintId } = req.body;
-  const Complaint = await Complaint.findByIdAndDelete({ complaintId });
+  await Complaint.deleteOne({ complaintId });
 
   if(!Complaint) throw new Error("Complaint Not Found")
   res.status(200).json({
@@ -166,7 +141,10 @@ export const DeleteComplient = AsyncHandler(async (req, res) => {
 //to make isSloved boolean to true. this is done by technician
 export const SolveComplaint = AsyncHandler(async (req, res) => {
   const { complaintId } = req.params;
-  const solvedComplaint = await Complaint.findOne({complaintId});
+  const { id } = req.user
+  const user = await User.findOne({googleId:id})
+  if(user.role)
+  // const solvedComplaint = await Complaint.findOne({complaintId});
   if (solvedComplaint && solvedComplaint.status === 2) {
     const updatedComplaint = await Complaint.findByIdAndUpdate(
       {complaintId},
@@ -196,78 +174,7 @@ export const verifyComplaint = AsyncHandler(async (req, res) => {
   });
 });
 
-//Get the Complaint detail
-export const GetComplaintDetail = AsyncHandler(async (req, res) => {
-  const  { complaintId }  = req.body;
-  const Complaint = await Complaint.findById({complaintId});
-  res.status(200).json(Complaint);
-});
 
-//Get the Unverfied Complaint details for verfiers
-export const GetUnverfiedComplaintsData = AsyncHandler(async (req, res) => {
-
-  const unverifiedComplaints = await Complaint.find({ status: statusMap.pending });
-  res.json(unverifiedComplaints);
-  
-});
-
-//Get the verfied Complaint for technicians and particular type of technician
-export const GetVerifiedComplaintsData = AsyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const technician = await User.findOne({ googleId: id });
-  const ComplainantType = technician.domain
-  const verifyComplaint = await Complaint.find({
-    status:statusMap.verified,
-    ComplaintType: ComplainantType,
-  });
-  res.status(200).json(verifyComplaint);
-});
-
-// Get solved Complaints
-export const GetSolvedComplaintsData = AsyncHandler(async (req, res) => {
-  const solvedComplaint = await Complaint.find({
-    status:statusMap.solved
-  });
-  res.json(solvedComplaint);
-});
-
-// This function is used to get the Complaints of particular user
-export const GetUserComplaints = AsyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const user = await User.findOne({ googleId: id });
-  const complaintsdata = await Complaint.find({ createdBy: user._id });
-  req.json(complaintsdata);
-});
-
-// This function is used to get the solved Complaints of particular user
-export const GetUserSolvedComplaints = AsyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const complaintsdata = await Complaint.find({
-    createdBy: id,
-    status:statusMap.solved
-  });
-  res.status(200).json(complaintsdata);
-});
-
-// This function is used to get the verified Complaints of particular user
-export const GetUserverifiedComplaints = AsyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const complaintsdata = await Complaint.find({
-    createdBy: id,
-    status:statusMap.verified
-  });
-  res.status(200).json(complaintsdata);
-});
-
-// This function is used to get the Unsolved Complaints of particular user
-export const GetUserUnsolvedComplaints = AsyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const complaintsdata = await Complaint.find({
-    createdBy: id,
-    status: statusMap.accepted
-  });
-  res.status(200).json(complaintsdata);
-});
 
 //this function is used to accept the Complaint
 export const acceptComplaint = AsyncHandler(async (req,res)=>{
