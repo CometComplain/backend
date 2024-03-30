@@ -4,7 +4,7 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import { User } from "../models/UserModel.js";
 import {frontendUrls, pageSize} from "../constants.js";
-import * as domain from "domain";
+import { customAlphabet } from "nanoid";
 dotenv.config();
 
 // User authentication
@@ -71,18 +71,32 @@ export const unblockUser = AsyncHandler(async (req, res) => {
   return await toogleBlock(req.params.id, res, false);
 });
 
+const generateId = customAlphabet("0123456789", 10);
+
+const GetComplaintId = () => {
+  const complaintId = generateId();
+  return complaintId
+}
+
+
 export const createUser = AsyncHandler(async (req, res) => {
-  const { email, role, domian } = req.body;
-  if(!email || !role) throw new Error("Invalid request");
-
-  const options = domain ? { domain, email, userType: role } : { email, userType: role};
-
-  const user = await User.create(options);
-
+  const { email, role } = req.body;
+    if(!email || !role) throw new Error("Invalid request");
+    const parsedRole = parseInt(role);
+    const domain = req.body.domain ? parseInt(req.body.domain) : undefined;
+  const options = { domain, email, userType: parsedRole, googleId: GetComplaintId(), flag: true};
+  const user = await User.findOne({ email });
+  if(user) throw new Error("User already exists");
+  await User.create(options);
   res.status(200).json({
     status: "success",
     message: "User created successfully",
   });
+    res.status(400).json({
+      status: "failed",
+      message: "User not created",
+    });
+  
 });
 
 //User Information access by admin
@@ -127,11 +141,16 @@ const userQuery = async (page, filter = {}, sortFilter = { createdAt: 1}) => {
 }
 
 const formatUserPreview = (user) => {
-  delete  user._id;
-  delete user.__v;
-  delete user.googleId;
-  delete user.updatedAt;
-  return user;
+  const { displayName, email, userType: role, isBlocked, domain, rollNo} = user;
+  return {
+    displayName,
+    email,
+    role,
+    isBlocked,
+    domain,
+    rollNo
+  };
+
 }
 
 //All User Information access by admin

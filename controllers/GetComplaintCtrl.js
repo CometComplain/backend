@@ -40,10 +40,16 @@ const technician = async (id, page, filterType) => {
 }
 
 const admin = async (id, page, filterType) => {
-  const user = await User.findOne({ googleId: id });
+  try{
+
+    const user = await User.findOne({ googleId: id });
     if(user.userType !== UserTypes.Admin) throw new Error("User is not an admin");
     const complaints = await complaintsQuery({}, page);
     return complaints.map(formatPreviewComplaint);
+  }
+  catch(err){
+    console.log(err);
+  }
 }
 const actionMap = {
     [UserTypes.Complainant]: complainant,
@@ -59,10 +65,11 @@ export const getComplaints = AsyncHandler(async (req, res) => {
   const { type, page } = req.query;
   const { id } = req.user;
 
+  
   const parsedPage = parseInt(page);
   const parsedType = parseInt(type);
   const parsedSuburl = parseInt(suburl);
-
+  
   if(!suburl) return res.status(400).json({ message: "Invalid URL" });
   const complaints = await actionMap[parsedSuburl](id, parsedPage, parsedType);
   return complaints.length === pageSize ? res.json({ complaints, nextPage: parsedPage + 1 }) : res.json({ complaints });
@@ -71,11 +78,6 @@ export const getComplaints = AsyncHandler(async (req, res) => {
 
 
 
-  // console.log("-------------------> debug <-------------------");
-  // console.log(suburl);
-  // console.log(type);
-  // console.log(parsedPage);
-  // let complaints;
   // if (suburl === "complainant") {
   //   complaints = await Complaint.find({ createdBy: id })
   //     .sort({ createdAt: -1 })

@@ -48,7 +48,7 @@ export function GoogleAuth() {
           if (!user) {
             // if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
             await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
-          } else if (!user.googleId) {
+          } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
             user.DisplayName = profile.givenName;
             await user.save();

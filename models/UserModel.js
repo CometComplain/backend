@@ -24,7 +24,6 @@ var userSchema = new mongoose.Schema({
     },
     rollNo: {
         type: String,
-        unique: true,
     },
     displayName: String,
     email: {

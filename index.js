@@ -72,12 +72,15 @@ app.use(notFound);
 app.use(errorHandler)
 
 connectDb().then( async ()=>{
-    app.listen(PORT, serverIp, (req,res)=>{
+    app.listen(PORT, (req,res)=>{
         console.log(`Server is running on port : ${PORT}`);
     })
     const adminEmail = process.env.ADMIN_EMAIL;
+    // console.log('Admin Email:', adminEmail);
     const admin = await User.findOne({email:adminEmail});
+    // console.log('Admin', admin);
     if(!admin){
+        // console.log('Admin not found, creating one');
         const result = await User.create({
             email:adminEmail,
             userType:UserTypes.Admin,
