@@ -13,6 +13,8 @@ import complaintRoute from "./routers/complaintRoute.js"
 import fileupload from "express-fileupload"
 
 import MongoDBStoreFactory from 'connect-mongodb-session';
+import {serverIp} from "./constants.js";
+import {User, UserTypes} from "./models/UserModel.js";
 const MongoDBStore = MongoDBStoreFactory(session);
 
 config({
@@ -36,13 +38,12 @@ app.use(morgan("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.set('trust proxy', 1);
-connectDb();
 app.use(cookieParser());
 app.use(session({
     secret: process.env.SESSION_SECRET_KEY,
     resave: false,
     saveUninitialized: true,
-    cookie: { 
+    cookie: {
         secure: false,
         maxAge: 24 * 60 * 60 * 1000, // 24 hrs
     },
@@ -60,8 +61,8 @@ app.get("/",(req,res)=>{
 
 app.all("*",(req,res,next)=>{
     const err = new Error(`Route ${req.originalUrl} not Found`);
-    err.statusCode = 404,
     res.status(404).json({
+        status:'fail',
         message:err.message,
     })
 })
@@ -70,7 +71,22 @@ app.use(CatchError)
 app.use(notFound);
 app.use(errorHandler)
 
-app.listen(PORT,(req,res)=>{
-    console.log(`port is running on ${PORT}`);
+connectDb().then( async ()=>{
+    app.listen(PORT, serverIp, (req,res)=>{
+        console.log(`Server is running on port : ${PORT}`);
+    })
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const admin = await User.findOne({email:adminEmail});
+    if(!admin){
+        const result = await User.create({
+            email:adminEmail,
+            userType:UserTypes.Admin,
+        })
+        if(!result) throw new Error('Admin not created');
+        process.exit(1);
+    }
+}).catch((err)=>{
+    console.error('-------> Connection error <-------', err);
+    process.exit(1);
 })
 

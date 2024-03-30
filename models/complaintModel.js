@@ -62,14 +62,11 @@ const ComplaintSchema = new mongoose.Schema({
     required: true,
   },
 
-  accepytedBy: {
+  acceptedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
   proof: {
-    type: String,
-  },
-  completionProof: {
     type: String,
   },
 });

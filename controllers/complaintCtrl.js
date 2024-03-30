@@ -33,7 +33,7 @@ complaint format = {
     },
     status: String,
     ceratedBy: String,
-    accepytedBy: String,
+    acceptedBy: String,
 }
 */
 
@@ -53,25 +53,25 @@ const getComplaintHash = async (complaint) => {
 
 //  To Register the Complaint
 export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
+  const transaction = await Complaint.startSession();
+  transaction.startTransaction();
   try {
     const data = JSON.parse(req.body.data)
-  const { complaint } = data;
-  const { id } = req.user;
+    const { complaint } = data;
+    const { id } = req.user;
 
-  // const user = await User.findOne({googleId: id});
+    const hash = await getComplaintHash(complaint);
+    const {complaintId} = req.body
 
-  const hash = await getComplaintHash(complaint);
-  const {complaintId} = req.body
+    const formattedComplaint = {
+        ...complaint,
+        createdBy: id,
+        complaintHash: hash,
+        complaintId
+    };
 
-  const formattedComplaint = {
-      ...complaint,
-      createdBy: id,
-      complaintHash: hash,
-      complaintId
-};
-
-  const createdComplaint = await Complaint.create(formattedComplaint);
-  const user = await User.findOneAndUpdate(
+    const createdComplaint = await Complaint.create(formattedComplaint).session(transaction);
+    const user = await User.findOneAndUpdate(
       {
           googleId: id,
           userType: UserTypes.Complainant,
@@ -79,18 +79,19 @@ export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
       {
           $inc: { noOfComplaints: 1 },
       }
-    );
+    ).session(transaction);
+
     res.status(200).json({
       status: "success",
       message: "Complaint registered successfully",
       id: createdComplaint.complaintId,
-  });
+    });
     next();
   } catch (error) {
-    console.log(error);
-    throw error
+    await transaction.abortTransaction();
+    throw new Error('Error in registering the complaint');
   }
-  
+
 });
 
 // testing
@@ -126,65 +127,137 @@ export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
 //   }
 // });
 
-// To Delete the Complaint
-export const DeleteComplient = AsyncHandler(async (req, res) => {
-  const { complaintId } = req.body;
-  await Complaint.deleteOne({ complaintId });
+const removeConfidentialProperties = (user) => {
+  if (!user)  return user;
+  delete user._id;
+  delete user.__v;
+  delete user.googleId;
+}
 
-  if(!Complaint) throw new Error("Complaint Not Found")
-  res.status(200).json({
-    status:"success",
-    message:"Succesfully Deleted"
+export const getComplaintWithId = AsyncHandler(async (req, res, next) => {
+  const { complaintId } = req.params;
+  const complaint = await Complaint.findOne({ complaintId });
+  if (!complaint) {
+    throw new Error("Complaint not found");
+  }
+  const resComplaint = complaint.toObject();
+
+  const createdBy = await User.findOne({ googleId: resComplaint.createdBy });
+
+  removeConfidentialProperties(createdBy);
+  delete resComplaint.createdBy;
+  delete resComplaint.acceptedBy;
+
+  const acceptedBy = resComplaint.acceptedBy ? await User.findOne({ googleId: resComplaint.acceptedBy }) : null;
+  removeConfidentialProperties(acceptedBy);
+
+  return acceptedBy ? res.status(200).json({
+    complaint: resComplaint,
+    createdBy: createdBy,
+    acceptedBy: acceptedBy,
+  }): res.status(200).json({
+    complaint: resComplaint,
+    createdBy: createdBy,
   });
 });
 
+export const rejectComplaint = AsyncHandler(async (req, res) => {
+  const { complaintId } = req.body;
+  const { id } = req.user;
+  const user = req.queriedUser;
+
+  const result = await Complaint.updateOne({
+    complaintId,
+    status: statusMap.pending,
+  }, {
+    status: statusMap.rejected,
+  });
+
+  if (result.modifiedCount === 0) throw new Error("Complaint Not Found or Already Rejected");
+
+  res.status(200).json({
+    status: "success",
+    message: "successfully updates the status of the Complaint",
+  });
+})
+
+// To Delete the Complaint
+export const DeleteCompliant = AsyncHandler(async (req, res) => {
+  const { complaintId } = req.body;
+  const { id } = req.user;
+  const result = await Complaint.deleteOne({ complaintId, createdBy: id });
+
+  if(result.deletedCount === 0) throw new Error("Complaint Not deleted")
+
+  res.status(200).json({
+    status:"success",
+    message:"Successfully Deleted"
+  });
+});
+
+
 //to make isSloved boolean to true. this is done by technician
 export const SolveComplaint = AsyncHandler(async (req, res) => {
-  const { complaintId } = req.params;
-  const { id } = req.user
-  const user = await User.findOne({googleId:id})
-  if(user.role)
-  // const solvedComplaint = await Complaint.findOne({complaintId});
-  if (solvedComplaint && solvedComplaint.status === 2) {
-    const updatedComplaint = await Complaint.findByIdAndUpdate(
-      {complaintId},
-      { status: statusMap.solved },
-      { new: true }
-    );
-    res.status(200).json({
-      status: "success",
-      message:"Succesfully Solved"
-    })
-  } else {
-    throw new Error("complaint is not found or not verified");
-  }
+  const { complaintId } = req.body;
+  const { id } = req.user;
+  const user = req.queriedUser;
+
+  const result = await Complaint.updateOne({
+    complaintId,
+    acceptedBy: user._id,
+    complaintType: user.domain,
+    status: { $in: [statusMap.accepted, statusMap.verified] }
+  },{
+    status: statusMap.solved
+  })
+
+  if(result.modifiedCount === 0) throw new Error("Complaint Not Found or Not Accepted")
+
+  res.status(200).json({
+  status: "success",
+  message: "sucessfully updates the status of the Complaint",
+  });
+
 });
 
 //to make isVerified boolean to true. this is done by Verifier and we will give a id for complient after verifing the Complaint
 export const verifyComplaint = AsyncHandler(async (req, res) => {
   const { complaintId } = req.body;
-  const Complaint = await Complaint.findOneAndUpdate(
-    { complaintId },
-    { status: statusMap.verified },
-    { new: true }
-  );
-  res.status(200).json({
+
+  const user = req.queriedUser;
+
+
+  const result = await Complaint.updateOne({
+    complaintId,
+    status: statusMap.pending,
+  },{
+    status: statusMap.verified
+  });
+  if (result.modifiedCount === 0) throw new Error("Complaint Not Found or Already Verified");
+
+  return res.status(200).json({
     status: "success",
-    message: "sucessfully updates the status of the Complaint",
+    message: "successfully updates the status of the Complaint",
   });
 });
-
 
 
 //this function is used to accept the Complaint
 export const acceptComplaint = AsyncHandler(async (req,res)=>{
     const { complaintId } = req.body
     const { id } = req.user
-    const foundUser = await User.find({googleId:id})
-    req.body = foundUser;
-    const AcceptedComplaint = await Complaint.findOneAndUpdate({complaintId},{status:2,accepytedBy:foundUser._id})
-    if(!foundUser) throw new Error("Please Login")
-    if(!AcceptedComplaint) throw new Error("Complaint Not Found")
+    const user = req.queriedUser;
+
+    const result = await Complaint.updateOne({
+      complaintId,
+      status: statusMap.verified,
+      complaintType: user.domain,
+    },{
+      status: statusMap.accepted,
+      acceptedBy: user._id
+    })
+    if (result.modifiedCount === 0) throw new Error("Complaint Not Found or Already Accepted");
+
     res.status(200).json({
       status:"success",
       message:"successfully accepted"

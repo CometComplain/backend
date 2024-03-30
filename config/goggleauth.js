@@ -7,10 +7,21 @@ const getRollNo = (email) => {
   const match = email.match(/\d{2}[a-zA-Z]{3}\d{1,4}$/);
 
   if (match) {
-    return '22' + match[0]; // found a roll number and return it
+    return '20' + match[0]; // found a roll number and return it
 
   } else {
     return '2022bcy0031' // default roll number removed after testing
+  }
+}
+
+const getUserObjectFromProfile = (profile) => {
+
+  return {
+    googleId: profile.id,
+    displayName: profile.givenName,
+    email: profile.emails[0].value,
+    userType: UserTypes.Complainant,
+    rollNo: getRollNo(profile.emails[0].value),
   }
 }
 
@@ -31,21 +42,18 @@ export function GoogleAuth() {
 
           // todo: check weather the user with this email is allowed or not
 
-          let user = await User.findOne({ googleId: profile.id });
-        
+          let user = await User.findOne({ email: userEmail });
+
           // If the user doesn't exist, create a new user
           if (!user) {
-            const rollNo = getRollNo(userEmail);
-            await User.create({
-              googleId: profile.id,
-              displayName: profile.displayName,
-              email: userEmail,
-              rollNo,
-              noOfComplaints:0,
-              solvedComplaints:0,
-            });
+            // if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
+            await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
+          } else if (!user.googleId) {
+            user.googleId = profile.id;
+            user.DisplayName = profile.givenName;
+            await user.save();
           }
-          
+
           // Pass the profile information to the next middleware
           return cb(null, profile);
         } catch (error) {

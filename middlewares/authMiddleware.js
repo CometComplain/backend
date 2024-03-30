@@ -11,9 +11,10 @@ export const isLoggedin = ((req,res,next)=>{
 export const CheckRole = (role) => {
     return AsyncHandler(async(req, res, next) => {
         const { id } = req.user;
-        const foundUser = await User.findOne({googleId: id})
+        const foundUser = await User.findOne({googleId: id});
         if(!foundUser) throw new Error("User Not found")
         if(foundUser.role === role){
+            req.queriedUser = foundUser;
             next()
         } else {
             throw new Error("forbidden")

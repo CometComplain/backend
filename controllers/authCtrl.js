@@ -3,7 +3,8 @@ import AsyncHandler from "express-async-handler";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import { User } from "../models/UserModel.js";
-import {frontendUrls} from "../constants.js";
+import {frontendUrls, pageSize} from "../constants.js";
+import * as domain from "domain";
 dotenv.config();
 
 // User authentication
@@ -49,28 +50,39 @@ export const UserLogout = (req, res) => {
   });
 };
 
+const toogleBlock = async (id, res, value) => {
+  const result = await User.updateOne({ googleId: id }, { IsBlock: value });
+
+  if (result.modifiedCount) throw new Error("Cannot able to unblock user");
+  return res.status(200).json({
+    status: "success",
+    message: "User unblocked successfully",
+  });
+
+}
+
 //Block User by admin
 export const BlockUser = AsyncHandler(async (req, res) => {
-  const id = req.params.id;
-  const user = await User.findOne({ googleId: id });
-  if (!user) {
-    throw new Error("Invalid Id. Please try Again!");
-  }
-  user.IsBlock = true;
-  await user.save();
-  res.json(user);
+  return await toogleBlock(req.params.id, res, true);
 });
 
 //Unblock User by admin
 export const unblockUser = AsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const user = await User.findOne({ googleId: id });
-  if (!user) {
-    throw new Error("Invalid Id,Please try Again!");
-  }
-  user.IsBlock = false;
-  await user.save();
-  res.json(user);
+  return await toogleBlock(req.params.id, res, false);
+});
+
+export const createUser = AsyncHandler(async (req, res) => {
+  const { email, role, domian } = req.body;
+  if(!email || !role) throw new Error("Invalid request");
+
+  const options = domain ? { domain, email, userType: role } : { email, userType: role};
+
+  const user = await User.create(options);
+
+  res.status(200).json({
+    status: "success",
+    message: "User created successfully",
+  });
 });
 
 //User Information access by admin
@@ -83,7 +95,7 @@ export const getUser = AsyncHandler(async (req, res) => {
   res.json(user);
 });
 
-const formatUser = (user) => {
+const formatUser = (user, googleUser) => {
   const _user = user.toObject();
 
   const role = user.userType;
@@ -96,23 +108,54 @@ const formatUser = (user) => {
   return {
     ..._user,
     role,
+    image: googleUser.photos[0].value,
   };
 }
 
 export const pingUser = AsyncHandler(async (req, res) => {
   if(req.user){
     const user = await User.findOne({googleId: req.user.id});
-
-    res.json(formatUser(user));
+    res.json(formatUser(user, req.user));
   }
   else{
     res.status(401).json({message:"User not found"});
   }
 });
 
+const userQuery = async (page, filter = {}, sortFilter = { createdAt: 1}) => {
+  return User.find(filter).sort(sortFilter).skip(pageSize * (page - 1)).limit(pageSize);
+}
+
+const formatUserPreview = (user) => {
+  delete  user._id;
+  delete user.__v;
+  delete user.googleId;
+  delete user.updatedAt;
+  return user;
+}
+
 //All User Information access by admin
-export const getAllUsers = AsyncHandler(async (req, res) => {
-  console.log(req.user);
-  const users = await User.find();
-  res.json(users);
+export const getUsers = AsyncHandler(async (req, res) => {
+  const { suburl } = req.params;
+  const {page} = req.query;
+  const parsedPage = parseInt(page);
+  if(!suburl) return res.status(400).json({ message: "Invalid URL" });
+  let users = [];
+  if(suburl === 'all') {
+    users = await userQuery(parsedPage);
+    return res.json({
+      users,
+      nextPage: users.length === pageSize ? parsedPage + 1 : null,
+    });
+  } else {
+    const parsedSuburl = parseInt(suburl);
+    users = await userQuery(parsedPage, { userType: parsedSuburl });
+  }
+
+  users = users.map(formatUserPreview);
+
+  return res.json({
+    users,
+    nextPage: users.length === pageSize ? parsedPage + 1 : null,
+  });
 });
