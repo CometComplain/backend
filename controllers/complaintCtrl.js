@@ -1,9 +1,9 @@
 import AsyncHandler from "express-async-handler";
-import { Compliant, statusMap } from "../models/complaintModel.js";
+import { Complaint, statusMap } from "../models/complaintModel.js";
 import { customAlphabet } from "nanoid";
 import { User, UserTypes } from "../models/UserModel.js";
 import crypto from "crypto";
-import router from "../routers/complientRoute.js";
+import router from "../routers/complaintRoute.js";
 import { format } from "path";
 
 /*
@@ -11,7 +11,7 @@ complaint from frontend format = {
     title: String,
     description: String,
     mobile: String,
-    compliantType: String,
+    ComplaintType: String,
     location: {
         buildingName: String,
         roomNo: String,
@@ -25,7 +25,7 @@ complaint format = {
     title: String,
     description: String,
     mobile: String,
-    compliantType: String,
+    ComplaintType: String,
     location: {
         buildingName: String,
         roomNo: String,
@@ -44,15 +44,15 @@ const getComplaintHash = async (complaint) => {
   const complaintString = JSON.stringify(complaint);
   hash.update(complaintString);
   const complaintHash = hash.digest("hex");
-  const foundComplaint = await Compliant.findOne({ complaintHash });
+  const foundComplaint = await Complaint.findOne({ complaintHash });
   if (foundComplaint) {
     throw new Error("Complaint already exists");
   }
   return complaintHash;
 };
 
-//  To Register the compliant
-export const RegisterComplaint = AsyncHandler(async (req, res) => {
+//  To Register the Complaint
+export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
   try {
     const data = JSON.parse(req.body.data)
   const { complaint } = data;
@@ -61,16 +61,16 @@ export const RegisterComplaint = AsyncHandler(async (req, res) => {
   // const user = await User.findOne({googleId: id});
 
   const hash = await getComplaintHash(complaint);
-  const complaintId = req.body.complaintId
+  const {complaintId} = req.body
 
   const formattedComplaint = {
       ...complaint,
       createdBy: id,
       complaintHash: hash,
-      complaintId,
-  };
+      complaintId
+};
 
-  const createdComplaint = await Compliant.create(formattedComplaint);
+  const createdComplaint = await Complaint.create(formattedComplaint);
   const user = await User.findOneAndUpdate(
       {
           googleId: id,
@@ -80,11 +80,12 @@ export const RegisterComplaint = AsyncHandler(async (req, res) => {
           $inc: { noOfComplaints: 1 },
       }
   );
-  return res.status(200).json({
+    res.status(200).json({
       status: "success",
       message: "Complaint registered successfully",
       id: createdComplaint.complaintId,
   });
+    next();
   } catch (error) {
     console.log(error);
     throw error
@@ -93,7 +94,7 @@ export const RegisterComplaint = AsyncHandler(async (req, res) => {
 });
 
 // testing
-// export const RegisterCompliant = AsyncHandler(async (req, res) => {
+// export const RegisterComplaint = AsyncHandler(async (req, res) => {
 //   console.log(req.body);
 //   res.json({
 //     status: "success",
@@ -115,13 +116,13 @@ export const getComplaints = AsyncHandler(async (req, res) => {
   const user = await User.findOne({ googleId: req.user.id });
   let complaints;
   if (suburl === "Complainant") {
-    complaints = await Compliant.find({ createdBy: user._id }).sort({createdAt: -1}).skip(pageSize * (page - 1)).limit(pageSize);
+    complaints = await Complaint.find({ createdBy: user._id }).sort({createdAt: -1}).skip(pageSize * (page - 1)).limit(pageSize);
   }
   else if (suburl === "Verifier") {
-    complaints = await Compliant.find({ status: statusMap.pending }).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
+    complaints = await Complaint.find({ status: statusMap.pending }).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
   }
   else if (suburl === "Technician") {
-    complaints = await Compliant.find({ status: statusMap.verified, compliantType: user.domain}).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
+    complaints = await Complaint.find({ status: statusMap.verified, ComplaintType: user.domain}).sort({createdAt: 1}).skip(pageSize * (page - 1)).limit(pageSize);
   }
   else {
     complaints = [];
@@ -150,12 +151,12 @@ export const fileUpload = AsyncHandler(async (req, res) => {
   }
 });
 
-// To Delete the compliant
+// To Delete the Complaint
 export const DeleteComplient = AsyncHandler(async (req, res) => {
   const { complaintId } = req.body;
-  const compliant = await Compliant.findByIdAndDelete({ complaintId });
+  const Complaint = await Complaint.findByIdAndDelete({ complaintId });
 
-  if(!compliant) throw new Error("Compliant Not Found")
+  if(!Complaint) throw new Error("Complaint Not Found")
   res.status(200).json({
     status:"success",
     message:"Succesfully Deleted"
@@ -163,11 +164,11 @@ export const DeleteComplient = AsyncHandler(async (req, res) => {
 });
 
 //to make isSloved boolean to true. this is done by technician
-export const SolveCompliant = AsyncHandler(async (req, res) => {
+export const SolveComplaint = AsyncHandler(async (req, res) => {
   const { complaintId } = req.params;
-  const solvedCompliant = await Compliant.findOne({complaintId});
-  if (solvedCompliant && solvedCompliant.status === 2) {
-    const updatedCompliant = await Compliant.findByIdAndUpdate(
+  const solvedComplaint = await Complaint.findOne({complaintId});
+  if (solvedComplaint && solvedComplaint.status === 2) {
+    const updatedComplaint = await Complaint.findByIdAndUpdate(
       {complaintId},
       { status: statusMap.solved },
       { new: true }
@@ -181,102 +182,102 @@ export const SolveCompliant = AsyncHandler(async (req, res) => {
   }
 });
 
-//to make isVerified boolean to true. this is done by Verifier and we will give a id for complient after verifing the compliant
-export const verifyCompliant = AsyncHandler(async (req, res) => {
+//to make isVerified boolean to true. this is done by Verifier and we will give a id for complient after verifing the Complaint
+export const verifyComplaint = AsyncHandler(async (req, res) => {
   const { complaintId } = req.body;
-  const compliant = await Compliant.findOneAndUpdate(
+  const Complaint = await Complaint.findOneAndUpdate(
     { complaintId },
     { status: statusMap.verified },
     { new: true }
   );
   res.status(200).json({
     status: "success",
-    message: "sucessfully updates the status of the compliant",
+    message: "sucessfully updates the status of the Complaint",
   });
 });
 
-//Get the compliant detail
-export const GetCompliantDetail = AsyncHandler(async (req, res) => {
+//Get the Complaint detail
+export const GetComplaintDetail = AsyncHandler(async (req, res) => {
   const  { complaintId }  = req.body;
-  const compliant = await Compliant.findById({complaintId});
-  res.status(200).json(compliant);
+  const Complaint = await Complaint.findById({complaintId});
+  res.status(200).json(Complaint);
 });
 
-//Get the Unverfied compliant details for verfiers
-export const GetUnverfiedCompliantsData = AsyncHandler(async (req, res) => {
+//Get the Unverfied Complaint details for verfiers
+export const GetUnverfiedComplaintsData = AsyncHandler(async (req, res) => {
 
-  const unverifiedComplaints = await Compliant.find({ status: statusMap.pending });
+  const unverifiedComplaints = await Complaint.find({ status: statusMap.pending });
   res.json(unverifiedComplaints);
   
 });
 
-//Get the verfied compliant for technicians and particular type of technician
-export const GetVerifiedCompliantsData = AsyncHandler(async (req, res) => {
+//Get the verfied Complaint for technicians and particular type of technician
+export const GetVerifiedComplaintsData = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const technician = await User.findOne({ googleId: id });
   const ComplainantType = technician.domain
-  const verifyCompliant = await Compliant.find({
+  const verifyComplaint = await Complaint.find({
     status:statusMap.verified,
-    compliantType: ComplainantType,
+    ComplaintType: ComplainantType,
   });
-  res.status(200).json(verifyCompliant);
+  res.status(200).json(verifyComplaint);
 });
 
-// Get solved compliants
-export const GetSolvedCompliantsData = AsyncHandler(async (req, res) => {
-  const solvedCompliant = await Compliant.find({
+// Get solved Complaints
+export const GetSolvedComplaintsData = AsyncHandler(async (req, res) => {
+  const solvedComplaint = await Complaint.find({
     status:statusMap.solved
   });
-  res.json(solvedCompliant);
+  res.json(solvedComplaint);
 });
 
-// This function is used to get the compliants of particular user
-export const GetUserCompliants = AsyncHandler(async (req, res) => {
+// This function is used to get the Complaints of particular user
+export const GetUserComplaints = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const user = await User.findOne({ googleId: id });
-  const complaintsdata = await Compliant.find({ createdBy: user._id });
+  const complaintsdata = await Complaint.find({ createdBy: user._id });
   req.json(complaintsdata);
 });
 
-// This function is used to get the solved compliants of particular user
-export const GetUserSolvedCompliants = AsyncHandler(async (req, res) => {
+// This function is used to get the solved Complaints of particular user
+export const GetUserSolvedComplaints = AsyncHandler(async (req, res) => {
   const { id } = req.user;
-  const complaintsdata = await Compliant.find({
+  const complaintsdata = await Complaint.find({
     createdBy: id,
     status:statusMap.solved
   });
   res.status(200).json(complaintsdata);
 });
 
-// This function is used to get the verified compliants of particular user
-export const GetUserverifiedCompliants = AsyncHandler(async (req, res) => {
+// This function is used to get the verified Complaints of particular user
+export const GetUserverifiedComplaints = AsyncHandler(async (req, res) => {
   const { id } = req.user;
-  const complaintsdata = await Compliant.find({
+  const complaintsdata = await Complaint.find({
     createdBy: id,
     status:statusMap.verified
   });
   res.status(200).json(complaintsdata);
 });
 
-// This function is used to get the Unsolved compliants of particular user
-export const GetUserUnsolvedCompliants = AsyncHandler(async (req, res) => {
+// This function is used to get the Unsolved Complaints of particular user
+export const GetUserUnsolvedComplaints = AsyncHandler(async (req, res) => {
   const { id } = req.user;
-  const complaintsdata = await Compliant.find({
+  const complaintsdata = await Complaint.find({
     createdBy: id,
     status: statusMap.accepted
   });
   res.status(200).json(complaintsdata);
 });
 
-//this function is used to accept the compliant
+//this function is used to accept the Complaint
 export const acceptComplaint = AsyncHandler(async (req,res)=>{
     const { complaintId } = req.body
     const { id } = req.user
     const foundUser = await User.find({googleId:id})
     req.body = foundUser;
-    const AcceptedCompliant = await Compliant.findOneAndUpdate({complaintId},{status:2,accepytedBy:foundUser._id})
+    const AcceptedComplaint = await Complaint.findOneAndUpdate({complaintId},{status:2,accepytedBy:foundUser._id})
     if(!foundUser) throw new Error("Please Login")
-    if(!AcceptedCompliant) throw new Error("Compliant Not Found")
+    if(!AcceptedComplaint) throw new Error("Complaint Not Found")
     res.status(200).json({
       status:"success",
       message:"successfully accepted"

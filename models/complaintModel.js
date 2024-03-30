@@ -17,7 +17,7 @@ export const typesMap = {
 };
 
 // change the attributes name according to your comfortable names
-const compliantSchema = new mongoose.Schema({
+const ComplaintSchema = new mongoose.Schema({
   complaintId: {
     type: String,
     required: true,
@@ -72,8 +72,11 @@ const compliantSchema = new mongoose.Schema({
   completionProof: {
     type: String,
   },
+  fileUrl:{
+    type:String,
+  }
 });
 
-compliantSchema.index({ complaintId: 1 }, { unique: true });
+ComplaintSchema.index({ complaintId: 1 }, { unique: true });
 
-export const Compliant = mongoose.model("Compliant", compliantSchema);
+export const Complaint = mongoose.model("Complaint", ComplaintSchema);

@@ -9,7 +9,7 @@ import session from "express-session";
 import passport from "passport";
 import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
-import compliantRoute from "./routers/complientRoute.js"
+import complaintRoute from "./routers/complaintRoute.js"
 import fileupload from "express-fileupload"
 
 import MongoDBStoreFactory from 'connect-mongodb-session';
@@ -28,7 +28,10 @@ const store = MongoDBStore({
 const app = express();
 const PORT = process.env.PORT
 
-app.use(fileupload())
+app.use(fileupload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
+  }));
 app.use(morgan("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
@@ -49,7 +52,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/grievance/auth',authroute)
-app.use('/grievance',compliantRoute)
+app.use('/grievance',complaintRoute)
 
 app.get("/",(req,res)=>{
     res.send("Hello World")  // testing
@@ -62,7 +65,6 @@ app.all("*",(req,res,next)=>{
         message:err.message,
     })
 })
-
 
 app.use(CatchError)
 app.use(notFound);
