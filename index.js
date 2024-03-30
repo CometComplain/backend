@@ -1,6 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { config } from "dotenv";
+// import { config } from "dotenv";
 import morgan from "morgan";
 import authroute from "./routers/authRoute.js"
 import { connectDb } from "./config/DbConnect.js";
@@ -13,13 +13,13 @@ import complaintRoute from "./routers/complaintRoute.js"
 import fileupload from "express-fileupload"
 
 import MongoDBStoreFactory from 'connect-mongodb-session';
-import {serverIp} from "./constants.js";
+import {frontendUrls, serverIp} from "./constants.js";
 import {User, UserTypes} from "./models/UserModel.js";
 const MongoDBStore = MongoDBStoreFactory(session);
 
-config({
-    path:'./.env'
-})
+// config({
+//     path:'./.env'
+// })
 
 const store = MongoDBStore({
     uri:process.env.MONGO_URL,
@@ -56,25 +56,26 @@ app.use('/grievance/auth',authroute)
 app.use('/grievance',complaintRoute)
 
 app.get("/",(req,res)=>{
-    res.send("Hello World")  // testing
+    res.redirect(frontendUrls.home);
+    // res.send('Hello World');
 });
 
 app.all("*",(req,res,next)=>{
-    const err = new Error(`Route ${req.originalUrl} not Found`);
-    res.status(404).json({
-        status:'fail',
-        message:err.message,
-    })
+    // const err = new Error(`Route ${req.originalUrl} not Found`);
+    res.redirect(frontendUrls.loginError);
 })
 
-app.use(CatchError)
+// app.use(CatchError)
 app.use(notFound);
 app.use(errorHandler)
 
 connectDb().then( async ()=>{
-    app.listen(PORT, (req,res)=>{
-        console.log(`Server is running on port : ${PORT}`);
-    })
+    // app.listen(PORT, '0.0.0.0' ,() => {
+    //     console.log(`Server started on http://${serverIp}:${PORT}`);
+    // } )
+    app.listen(PORT, serverIp, () => {
+        console.log(`Server started on http://${serverIp}:${PORT}`);
+});
     const adminEmail = process.env.ADMIN_EMAIL;
     // console.log('Admin Email:', adminEmail);
     const admin = await User.findOne({email:adminEmail});

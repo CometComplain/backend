@@ -192,16 +192,20 @@ export const rejectComplaint = AsyncHandler(async (req, res) => {
 
 // To Delete the Complaint
 export const DeleteCompliant = AsyncHandler(async (req, res) => {
-  const { complaintId } = req.body;
-  const { id } = req.user;
-  const result = await Complaint.deleteOne({ complaintId, createdBy: id });
 
-  if(result.deletedCount === 0) throw new Error("Complaint Not deleted")
-
-  res.status(200).json({
+    const { complaintId } = req.body;
+    const { id } = req.user;
+    const complaint = await Complaint.findOneAndDelete({ complaintId, createdBy: id });
+    
+    if(!complaint) throw new Error("Complaint Not deleted")
+    
+    const result = await User.updateOne({ googleId: id }, { $inc: { noOfComplaints: -1}}, {new: true});
+    if(result.modifiedCount === 0) throw new Error("User Not Found");
+    res.status(200).json({
     status:"success",
     message:"Successfully Deleted"
   });
+
 });
 
 
@@ -211,7 +215,7 @@ export const SolveComplaint = AsyncHandler(async (req, res) => {
   const { id } = req.user;
   const user = req.queriedUser;
 
-  const result = await Complaint.updateOne({
+  const complaint = await Complaint.findOneAndUpdate({
     complaintId,
     acceptedBy: user._id,
     complaintType: user.domain,
@@ -220,7 +224,9 @@ export const SolveComplaint = AsyncHandler(async (req, res) => {
     status: statusMap.solved
   })
 
-  if(result.modifiedCount === 0) throw new Error("Complaint Not Found or Not Accepted")
+  if(!complaint) throw new Error("Complaint Not Found or Not Accepted");
+  const result = await User.updateOne({ googleId: complaint.createdBy }, { $inc: { noOfComplaintsSolved: 1 }}, {new: true});
+  if(result.modifiedCount === 0) throw new Error("User Not Found");
 
   res.status(200).json({
   status: "success",
@@ -253,6 +259,7 @@ export const verifyComplaint = AsyncHandler(async (req, res) => {
 
 //this function is used to accept the Complaint
 export const acceptComplaint = AsyncHandler(async (req,res)=>{
+    // console.log(req.body);
     const { complaintId } = req.body
     const { id } = req.user
     const user = req.queriedUser;

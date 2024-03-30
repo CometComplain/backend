@@ -36,20 +36,21 @@ const verifier = async (id, page, filterType) => {
 const technician = async (id, page, filterType) => {
     const user = await User.findOne({ googleId: id });
     if(user.userType !== UserTypes.Technician) throw new Error("User is not a technician");
-    const complaints = await complaintsQuery({ status: filterType, ComplaintType: user.domain }, page, { createdAt: 1});
+    const complaints = await complaintsQuery({ status: filterType, complaintType: user.domain }, page, { createdAt: 1});
+    return complaints.map(formatPreviewComplaint);
 }
 
 const admin = async (id, page, filterType) => {
-  try{
+  // try{
 
     const user = await User.findOne({ googleId: id });
     if(user.userType !== UserTypes.Admin) throw new Error("User is not an admin");
     const complaints = await complaintsQuery({}, page);
     return complaints.map(formatPreviewComplaint);
-  }
-  catch(err){
-    console.log(err);
-  }
+  // }
+  // catch(err){
+  //   console.log(err);
+  // }
 }
 const actionMap = {
     [UserTypes.Complainant]: complainant,

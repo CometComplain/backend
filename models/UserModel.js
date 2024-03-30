@@ -51,6 +51,10 @@ var userSchema = new mongoose.Schema({
     solvedComplaints: {
         type: Number,
     },
+    flag: {
+        type: Boolean,
+        default: false,
+    },
 },{
     timestamps:true
 });

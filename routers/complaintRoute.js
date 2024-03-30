@@ -22,7 +22,7 @@ const router = express.Router();
 
 router.get("/complaints/:suburl", isLoggedin, CatchError(getComplaints));
 router.get("/complaint/:complaintId", isLoggedin, CatchError(getComplaintWithId));
-router.get("/compliantcount",isLoggedin,CheckRole(UserTypes.Admin),CatchError(GetNoOfComplaints))
+router.get("/complaintcount",isLoggedin,CheckRole(UserTypes.Admin),CatchError(GetNoOfComplaints))
 
 // router.get(
 //   "/complaintWithId/:complaintId",
@@ -37,7 +37,7 @@ router.get("/compliantcount",isLoggedin,CheckRole(UserTypes.Admin),CatchError(Ge
 router.post("/verify", isLoggedin, CheckRole(UserTypes.Verifier) ,CatchError(verifyComplaint));
 
 router.post("/solve", isLoggedin, CheckRole(UserTypes.Technician),CatchError(SolveComplaint));
-router.post("/reject", isLoggedin, CheckRole(UserTypes.Verifier),CatchError(rejectComplaint));
+router.put("/reject", isLoggedin, CheckRole(UserTypes.Verifier),CatchError(rejectComplaint));
 router.post("/accept", isLoggedin, CheckRole(UserTypes.Technician),CatchError(acceptComplaint));
 
 // router.get("/getuserComplaints", isLoggedin, GetUserComplaints);

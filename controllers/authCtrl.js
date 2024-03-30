@@ -18,7 +18,7 @@ export const UserCallBack = passport.authenticate("google", {
 });
 
 export const UserSuccessLog = (req, res) => {
-  console.log(req.user);
+  // console.log(req.user);
   const name = req.user.displayName;
   res.json({
     success: true,
@@ -41,7 +41,7 @@ export const UserLogout = (req, res) => {
         //   success: false,
         //   message: "Could not log out, please try again",
         // });
-        console.log('cant logout user')
+        // console.log('cant logout user')
       } else {
         res.clearCookie("connect.sid");
       }

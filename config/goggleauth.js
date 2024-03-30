@@ -43,14 +43,14 @@ export function GoogleAuth() {
           // todo: check weather the user with this email is allowed or not
 
           let user = await User.findOne({ email: userEmail });
-
+          // console.log(profile);
           // If the user doesn't exist, create a new user
           if (!user) {
             // if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
             await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
           } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
-            user.DisplayName = profile.givenName;
+            user.DisplayName = profile.name.givenName;
             await user.save();
           }
 

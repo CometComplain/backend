@@ -36,6 +36,7 @@ const uploadFileToCloudinary = AsyncHandler(async (req, res, next) => {
     req.fileUrl = result.secure_url;
     const {complaintId} = req.body
     const {fileUrl} = req
+    // console.log("complaintId",complaintId);
     await Complaint.updateOne({complaintId},{proof:fileUrl},{new:true})
     // Delete the temporary file
     fs.unlink(file.tempFilePath, (err) => {
@@ -44,11 +45,11 @@ const uploadFileToCloudinary = AsyncHandler(async (req, res, next) => {
     }
     });
     // Call the next middleware
-    return;
   } catch (err) {
     console.error(err);
     res.status(500).send('Error uploading file.');
   }
+  console.log("--------------------->file uploaded sucessfully");
 });
 
 // Initialize express-fileupload middleware

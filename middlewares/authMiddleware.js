@@ -10,14 +10,17 @@ export const isLoggedin = ((req,res,next)=>{
 // this function is used to check the role
 export const CheckRole = (role) => {
     return AsyncHandler(async(req, res, next) => {
-        console.log("CheckRole");
+        // console.log("CheckRole");
         const { id } = req.user;
         const foundUser = await User.findOne({googleId: id});
         if(!foundUser) throw new Error("User Not found")
+        // console.log("Role", role);
         if(foundUser.userType === role){
             req.queriedUser = foundUser;
+            // console.log("Role Matched");
             next()
         } else {
+            res.status(401);
             throw new Error("forbidden")
         }
 

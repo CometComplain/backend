@@ -69,7 +69,7 @@ const ComplaintSchema = new mongoose.Schema({
   proof: {
     type: String,
   },
-});
+}, {timestamps: true});
 
 ComplaintSchema.index({ complaintId: 1 }, { unique: true });
 

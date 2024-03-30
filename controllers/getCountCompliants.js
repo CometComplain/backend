@@ -121,13 +121,13 @@ async function displayCounts() {
     const monthlyCount = await getMonthlyCount();
     const yearlyCount = await getYearlyCount();
 
-    console.log('Today:', todayCount);
-    console.log('This Week:', thisWeekCount);
-    previousFourWeeks.forEach((week) => {
-        console.log(`Week ${week._id.week} (Year ${week._id.year}): ${week.count}`);
-      });
-    console.log('Monthly Count:', monthlyCount);
-    console.log('Yearly Count:', yearlyCount);
+    // console.log('Today:', todayCount);
+    // console.log('This Week:', thisWeekCount);
+    // previousFourWeeks.forEach((week) => {
+    //     console.log(`Week ${week._id.week} (Year ${week._id.year}): ${week.count}`);
+    //   });
+    // console.log('Monthly Count:', monthlyCount);
+    // console.log('Yearly Count:', yearlyCount);
   } catch (err) {
     console.error(err);
   }
