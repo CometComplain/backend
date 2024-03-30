@@ -10,17 +10,19 @@ import {
 } from "../controllers/complaintCtrl.js"
 
 import { uploadFileToCloudinary } from "../middlewares/uploadfile.js";
-import { generateComplaintId } from "../middlewares/getComplaintId.js";
 import { CheckFileType } from "../middlewares/checkFileType.js";
 import displayCounts from "../controllers/getCountCompliants.js"
 import { getComplaints } from "../controllers/GetComplaintCtrl.js";
 import {User, UserTypes} from "../models/UserModel.js";
+import { GetNoOfComplaints } from "../controllers/GetTypeCoutComplaint.js";
 const router = express.Router();
 
 //get request
 // router.get("/getComplaints", isLoggedin, CheckRole("admin"), CatchError(GetComplaintDetail));
 
 router.get("/complaints/:suburl", isLoggedin, CatchError(getComplaints));
+router.get("/complaint/:complaintId", isLoggedin, CatchError(getComplaintWithId));
+router.get("/compliantcount",isLoggedin,CheckRole(UserTypes.Admin),CatchError(GetNoOfComplaints))
 
 // router.get(
 //   "/complaintWithId/:complaintId",
@@ -38,8 +40,6 @@ router.post("/solve", isLoggedin, CheckRole(UserTypes.Technician),CatchError(Sol
 router.post("/reject", isLoggedin, CheckRole(UserTypes.Verifier),CatchError(rejectComplaint));
 router.post("/accept", isLoggedin, CheckRole(UserTypes.Technician),CatchError(acceptComplaint));
 
-router.get("/complaint/:complaintId", isLoggedin, CatchError(getComplaintWithId));
-
 // router.get("/getuserComplaints", isLoggedin, GetUserComplaints);
 //post request
 //include this method in input file tag: enctype="multipart/form-data"
@@ -47,14 +47,11 @@ router.get("/complaint/:complaintId", isLoggedin, CatchError(getComplaintWithId)
 router.post(
   "/register",
   isLoggedin,
-  generateComplaintId,
   CheckFileType,
   CatchError(RegisterComplaint),
   CatchError(uploadFileToCloudinary),
   
 );
-
-router.get('/count',displayCounts)
 
 //delete request
 router.delete("/delete", isLoggedin, CatchError(DeleteCompliant));

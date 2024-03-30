@@ -123,7 +123,7 @@ export const pingUser = AsyncHandler(async (req, res) => {
 });
 
 const userQuery = async (page, filter = {}, sortFilter = { createdAt: 1}) => {
-  return User.find(filter).sort(sortFilter).skip(pageSize * (page - 1)).limit(pageSize);
+  return await User.find(filter).sort(sortFilter).skip(pageSize * (page - 1)).limit(pageSize);
 }
 
 const formatUserPreview = (user) => {

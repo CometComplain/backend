@@ -28,11 +28,10 @@ const uploadFileToCloudinary = AsyncHandler(async (req, res, next) => {
     // Upload the file to Cloudinary
     const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
       folder: 'Compliants',
-      public_id: req.body.complaintId, // Assuming you have a 'complaintId' field in your request body
+      public_id: `${file.originalFilename}.${req.body.complaintId}`, // Assuming 'file' has an 'originalFilename' property
       resource_type: 'auto'
     });
 
-    
     // Add the uploaded file URL to the request object
     req.fileUrl = result.secure_url;
     const {complaintId} = req.body

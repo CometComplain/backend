@@ -16,8 +16,9 @@ const complaintsQuery = (filter = {}, page, sortFilter = { createdAt: -1}) => {
 }
 
 const formatPreviewComplaint = (complaint) => {
-  const { complaintId, title, description, status } = complaint;
-  return { complaintId, title, description, status };
+  const { complaintId, title, description, status,createdAt } = complaint;
+  const parsedDate = new Date(createdAt);
+  return { complaintId, title, description, status,createdAt : parsedDate };
 }
 
 const complainant = async (id, page, filterType) => {

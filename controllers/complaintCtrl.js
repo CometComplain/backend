@@ -5,6 +5,7 @@ import { User, UserTypes } from "../models/UserModel.js";
 import crypto from "crypto";
 import router from "../routers/complaintRoute.js";
 import { format } from "path";
+import mongoose  from "mongoose";
 
 /*
 complaint from frontend format = {
@@ -37,7 +38,12 @@ complaint format = {
 }
 */
 
+const generateId = customAlphabet("0123456789", 10);
 
+const GetComplaintId = () => {
+  const complaintId = generateId();
+  return complaintId
+}
 
 const getComplaintHash = async (complaint) => {
   const hash = crypto.createHash("sha256");
@@ -45,6 +51,7 @@ const getComplaintHash = async (complaint) => {
   hash.update(complaintString);
   const complaintHash = hash.digest("hex");
   const foundComplaint = await Complaint.findOne({ complaintHash });
+  // const foundComplaint = await Complaint.findOne({ complaintHash: complaintHash }, { session: transaction });
   if (foundComplaint) {
     throw new Error("Complaint already exists");
   }
@@ -53,15 +60,16 @@ const getComplaintHash = async (complaint) => {
 
 //  To Register the Complaint
 export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
-  const transaction = await Complaint.startSession();
-  transaction.startTransaction();
-  try {
+  // const transaction = await mongoose.startSession();
+  // transaction.startTransaction();
+  // try {
     const data = JSON.parse(req.body.data)
     const { complaint } = data;
     const { id } = req.user;
 
     const hash = await getComplaintHash(complaint);
-    const {complaintId} = req.body
+    const complaintId = GetComplaintId();
+    req.body.complaintId = complaintId;
 
     const formattedComplaint = {
         ...complaint,
@@ -69,28 +77,29 @@ export const RegisterComplaint = AsyncHandler(async (req,res,next) => {
         complaintHash: hash,
         complaintId
     };
-
-    const createdComplaint = await Complaint.create(formattedComplaint).session(transaction);
-    const user = await User.findOneAndUpdate(
-      {
-          googleId: id,
-          userType: UserTypes.Complainant,
-      },
-      {
-          $inc: { noOfComplaints: 1 },
-      }
-    ).session(transaction);
-
+  const createdComplaint = await Complaint.create(formattedComplaint);
+  // const createdComplaint = await Complaint.create([formattedComplaint], { session: transaction });
+  await User.updateOne(
+  {
+    googleId: id,
+    userType: UserTypes.Complainant,
+  },
+  {
+    $inc: { noOfComplaints: 1 },
+  },
+  // { session: transaction }
+);
     res.status(200).json({
       status: "success",
       message: "Complaint registered successfully",
       id: createdComplaint.complaintId,
     });
     next();
-  } catch (error) {
-    await transaction.abortTransaction();
-    throw new Error('Error in registering the complaint');
-  }
+  // } catch (error) {
+  //   console.log(error);
+  //   // await transaction.abortTransaction();
+  //   throw new error;
+  // }
 
 });
 

@@ -1,8 +1,7 @@
 import express from "express";
 import {
     BlockUser, createUser,
-    getAllUsers,
-    getUser,
+    getUsers,
     pingUser,
     unblockUser,
     Userauth,
@@ -35,6 +34,6 @@ router.put('/blockUser/:id',isLoggedin,CatchError(CheckRole(UserTypes.Admin)),Ca
 router.put('/unblockUser/:id',isLoggedin,CatchError(CheckRole(UserTypes.Admin)),CatchError(unblockUser));
 router.post('/createUser',isLoggedin,CatchError(CheckRole(UserTypes.Admin)), CatchError(createUser));
 
-router.get('/users:suburl',isLoggedin,CatchError(getUsers));
+router.get('/users/:suburl',isLoggedin,CatchError(getUsers));
 
 export default router;
