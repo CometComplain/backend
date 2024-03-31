@@ -10,4 +10,6 @@ export const frontendUrls = {
 
 export const pageSize = 10;
 
-export const serverIp = "172.16.207.102";
+// export const serverIp = "172.16.207.102";
+
+export const serverIp = "localhost";
