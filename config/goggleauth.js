@@ -51,6 +51,7 @@ export function GoogleAuth() {
           } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
             user.displayName = profile.name.givenName;
+            user.flag = false;
             await user.save();
           }
 
