@@ -46,7 +46,7 @@ export function GoogleAuth() {
           // console.log(profile);
           // If the user doesn't exist, create a new user
           if (!user) {
-            // if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
+            if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
             await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
           } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
