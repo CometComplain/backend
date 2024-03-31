@@ -50,7 +50,7 @@ export function GoogleAuth() {
             await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
           } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
-            user.DisplayName = profile.name.givenName;
+            user.displayName = profile.name.givenName;
             await user.save();
           }
 
