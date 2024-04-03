@@ -12,7 +12,6 @@ export const technicianDomains = {
     electrical: 1,
     plumbing: 2,
     it: 3,
-    academics: 4,
     others: 5,
 };
 

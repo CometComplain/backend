@@ -18,7 +18,7 @@ const getUserObjectFromProfile = (profile) => {
 
   return {
     googleId: profile.id,
-    displayName: profile.givenName,
+    displayName: profile.name.givenName,
     email: profile.emails[0].value,
     userType: UserTypes.Complainant,
     rollNo: getRollNo(profile.emails[0].value),
@@ -47,6 +47,7 @@ export function GoogleAuth() {
           // If the user doesn't exist, create a new user
           if (!user) {
             if(!userEmail.endsWith('@iiitkottayam.ac.in')) throw new Error("Only IIITKottayam emails are allowed");
+            console.log(getUserObjectFromProfile(profile));
             await User.create(getUserObjectFromProfile(profile, UserTypes.Complainant));
           } else if (!user.googleId || user.flag) {
             user.googleId = profile.id;
