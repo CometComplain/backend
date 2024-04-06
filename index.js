@@ -11,7 +11,7 @@ import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
 import complaintRoute from "./routers/complaintRoute.js"
 import fileupload from "express-fileupload"
-
+import cors from "cors"
 import MongoDBStoreFactory from 'connect-mongodb-session';
 import {frontendUrls, serverIp} from "./constants.js";
 import {User, UserTypes} from "./models/UserModel.js";
@@ -29,6 +29,14 @@ const store = MongoDBStore({
 
 const app = express();
 const PORT = process.env.PORT
+
+app.use(cors({
+    origin: frontendUrls.base,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.use(fileupload({
     useTempFiles: true,
@@ -73,8 +81,9 @@ connectDb().then( async ()=>{
     // app.listen(PORT, '0.0.0.0' ,() => {
     //     console.log(`Server started on http://${serverIp}:${PORT}`);
     // } )
-    app.listen(PORT, serverIp, () => {
-        console.log(`Server started on http://${serverIp}:${PORT}`);
+    app.listen(PORT, () => {
+        // console.log(`Server started on http://${serverIp}:${PORT}`);
+        console.log(`Server started on port ${PORT}`);
 });
     const adminEmail = process.env.ADMIN_EMAIL;
     // console.log('Admin Email:', adminEmail);

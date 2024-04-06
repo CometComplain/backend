@@ -149,9 +149,13 @@ export const getComplaintWithId = AsyncHandler(async (req, res, next) => {
   if (!complaint) {
     throw new Error("Complaint not found");
   }
+
+  const user = await User.findOne({ googleId: req.user.id });
+  
+  if (user.userType === UserTypes.Complainant && complaint.createdBy !== user.googleId) throw new Error("Unauthorized Access");
   const resComplaint = complaint.toObject();
 
-  const createdBy = await User.findOne({ googleId: resComplaint.createdBy });
+  const createdBy = user.userType !== UserTypes.Complainant ? await User.findOne({ googleId: resComplaint.createdBy }) : user;
 
   removeConfidentialProperties(createdBy);
   delete resComplaint.createdBy;

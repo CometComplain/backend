@@ -1,11 +1,12 @@
 // export const frontendIp = "172.16.207.102";
-export const frontendIp = "localhost";
+export const frontendUrl = "frontend-vf9u.onrender.com";
 export const frontendPort = "5173";
 
 
 export const frontendUrls = {
-    home: `http://${frontendIp}:${frontendPort}/`,
-    loginError: `http://${frontendIp}:${frontendPort}/error`,
+    base: `https://${frontendUrl}`,
+    home: `https://${frontendUrl}/`,
+    loginError: `https://${frontendUrl}/error`,
 }
 
 export const pageSize = 10;
