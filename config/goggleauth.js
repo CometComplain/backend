@@ -2,6 +2,7 @@ import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
 import { User, UserTypes } from "../models/UserModel.js";
 import AsyncHandler from "express-async-handler";
+import { backendUrl } from "../constants.js";
 
 const getRollNo = (email) => {
   const match = email.match(/\d{2}[a-zA-Z]{3}\d{1,4}$/);
@@ -32,7 +33,7 @@ export function GoogleAuth() {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `http://localhost:${process.env.PORT}/grievance/auth/google/callback`,
+        callbackURL: `${backendUrl}/grievance/auth/google/callback`,
       },
       AsyncHandler(async function (accessToken, refreshToken, profile, cb) {
         try {
