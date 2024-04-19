@@ -47,12 +47,12 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.set('trust proxy', 1);
 app.use(cookieParser());
+
 app.use(session({
     secret: process.env.SESSION_SECRET_KEY,
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: false,
         maxAge: 24 * 60 * 60 * 1000, // 24 hrs
     },
     store,

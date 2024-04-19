@@ -47,9 +47,12 @@ const GetComplaintId = () => {
 
 const getComplaintHash = async (complaint) => {
   const hash = crypto.createHash("sha256");
-  const complaintString = JSON.stringify(complaint);
+  console.log(complaint)
+  const { title, mobile, location,complaintType  } = complaint;
+  const complaintString = JSON.stringify({ title, mobile, location,complaintType});
   hash.update(complaintString);
   const complaintHash = hash.digest("hex");
+  console.log(complaintHash);
   const foundComplaint = await Complaint.findOne({ complaintHash });
   // const foundComplaint = await Complaint.findOne({ complaintHash: complaintHash }, { session: transaction });
   if (foundComplaint) {
