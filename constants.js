@@ -3,6 +3,7 @@
 // export const frontendPort = "8080";
 
 export const frontendDomain = process.env.FRONTEND_DOMAIN;
+export const backendDomain = process.env.BACKEND_DOMAIN;
 
 export const frontendUrls = {
   home: `http://${frontendDomain}/`,
