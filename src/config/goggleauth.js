@@ -3,7 +3,7 @@ import passport from "passport";
 import { Strategy } from "passport-google-oauth20";
 import { User, UserTypes } from "../models/UserModel.js";
 import AsyncHandler from "express-async-handler";
-import {  backendDomain } from "../constants.js";
+import { backendDomain } from "../constants.js";
 const GoogleStrategy = Strategy;
 
 const getRollNo = (email) => {
@@ -34,7 +34,7 @@ export function GoogleAuth() {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         // callbackURL: `http://${serverIp}:${process.env.PORT}/grievance/auth/google/callback`,
-        callbackURL: `http://${backendDomain}/grievance/auth/google/callback`,
+        callbackURL: `${backendDomain}/grievance/auth/google/callback`,
       },
       AsyncHandler(async function (accessToken, refreshToken, profile, cb) {
         try {
@@ -83,3 +83,4 @@ export function GoogleAuth() {
     done(null, user);
   });
 }
+

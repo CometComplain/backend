@@ -6,8 +6,8 @@ export const frontendDomain = process.env.FRONTEND_DOMAIN;
 export const backendDomain = process.env.BACKEND_DOMAIN;
 
 export const frontendUrls = {
-  home: `http://${frontendDomain}/`,
-  loginError: `http://${frontendDomain}/error`,
+  home: `${frontendDomain}/`,
+  loginError: `${frontendDomain}/error`,
 };
 
 // export const frontendUrls = {
@@ -17,4 +17,3 @@ export const frontendUrls = {
 export const pageSize = 10;
 
 export const serverIp = "0.0.0.0";
-
