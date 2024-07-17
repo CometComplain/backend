@@ -7,14 +7,13 @@ import { connectDb } from "./config/DbConnect.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 import session from "express-session";
 import passport from "passport";
-import { CatchError } from "./middlewares/CatchError.js";
 import cookieParser from 'cookie-parser';
 import complaintRoute from "./routers/complaintRoute.js"
 import fileupload from "express-fileupload"
-
+import "dotenv/config"
 import MongoDBStoreFactory from 'connect-mongodb-session';
 import {frontendUrls, serverIp} from "./constants.js";
-import {User, UserTypes} from "./models/UserModel.js";
+import { GoogleAuth } from './config/goggleauth.js';
 const MongoDBStore = MongoDBStoreFactory(session);
 
 // config({
@@ -29,7 +28,8 @@ const store = MongoDBStore({
 
 const app = express();
 const PORT = process.env.PORT
-
+connectDb()
+GoogleAuth();
 app.use(fileupload({
     useTempFiles: true,
     tempFileDir: '/tmp/'
@@ -69,28 +69,8 @@ app.all("*",(req,res,next)=>{
 app.use(notFound);
 app.use(errorHandler)
 
-connectDb().then( async ()=>{
-    // app.listen(PORT, '0.0.0.0' ,() => {
-    //     console.log(`Server started on http://${serverIp}:${PORT}`);
-    // } )
-    app.listen(PORT, serverIp, () => {
+
+
+app.listen(PORT, serverIp, () => {
         console.log(`Server started on http://${serverIp}:${PORT}`);
 });
-    const adminEmail = process.env.ADMIN_EMAIL;
-    // console.log('Admin Email:', adminEmail);
-    const admin = await User.findOne({email:adminEmail});
-    // console.log('Admin', admin);
-    if(!admin){
-        // console.log('Admin not found, creating one');
-        const result = await User.create({
-            email:adminEmail,
-            userType:UserTypes.Admin,
-        })
-        if(!result) throw new Error('Admin not created');
-        process.exit(1);
-    }
-}).catch((err)=>{
-    console.error('-------> Connection error <-------', err);
-    process.exit(1);
-})
-

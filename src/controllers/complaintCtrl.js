@@ -1,11 +1,10 @@
 import AsyncHandler from "express-async-handler";
 import { Complaint, statusMap } from "../models/complaintModel.js";
-import { customAlphabet } from "nanoid";
 import { User, UserTypes } from "../models/UserModel.js";
+import { GetComplaintId } from "../utils/getCompliantId.js";
 import crypto from "crypto";
-import router from "../routers/complaintRoute.js";
-import { format } from "path";
-import mongoose  from "mongoose";
+// import { format } from "path";
+// import mongoose  from "mongoose";
 
 /*
 complaint from frontend format = {
@@ -38,12 +37,6 @@ complaint format = {
 }
 */
 
-const generateId = customAlphabet("0123456789", 10);
-
-const GetComplaintId = () => {
-  const complaintId = generateId();
-  return complaintId
-}
 
 const getComplaintHash = async (complaint) => {
   const hash = crypto.createHash("sha256");

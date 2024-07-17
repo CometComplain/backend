@@ -49,7 +49,6 @@ const uploadFileToCloudinary = AsyncHandler(async (req, res, next) => {
     console.error(err);
     res.status(500).send('Error uploading file.');
   }
-  console.log("--------------------->file uploaded sucessfully");
 });
 
 // Initialize express-fileupload middleware

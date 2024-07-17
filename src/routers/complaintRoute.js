@@ -1,5 +1,4 @@
 import express from "express";
-import { CatchError } from "../middlewares/CatchError.js";
 import { CheckRole, isLoggedin } from "../middlewares/authMiddleware.js";
 import {
   acceptComplaint,
@@ -15,6 +14,7 @@ import displayCounts from "../controllers/getCountCompliants.js"
 import { getComplaints } from "../controllers/GetComplaintCtrl.js";
 import {User, UserTypes} from "../models/UserModel.js";
 import { GetNoOfComplaints } from "../controllers/GetTypeCoutComplaint.js";
+import { CatchError } from "../middlewares/CatchError.js";
 const router = express.Router();
 
 //get request
