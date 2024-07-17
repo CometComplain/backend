@@ -12,6 +12,7 @@ const configureSession = (app, store) => {
         // sameSite: "lex",
         secure: true,
         maxAge: parseInt(process.env.MAX_AGE, 10), // Ensure maxAge is an integer
+        httpOnly: false,
       },
       store,
     }),
@@ -19,4 +20,3 @@ const configureSession = (app, store) => {
 };
 
 export default configureSession;
-
