@@ -16,6 +16,7 @@ const configureSession = (app, store) => {
         sameSite: isProduction ? "none" : "lax",
         maxAge: parseInt(process.env.MAX_AGE, 10),
         httpOnly: false,
+        path: '/',
       },
       store,
     }),
