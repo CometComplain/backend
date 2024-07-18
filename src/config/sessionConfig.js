@@ -1,17 +1,19 @@
 import session from "express-session";
 import { frontendDomain } from "../constants.js";
+
 const configureSession = (app, store) => {
+  const isProduction = process.env.NODE_ENV === "production";
+  
   app.use(
     session({
       secret: process.env.SESSION_SECRET_KEY,
       resave: false,
       saveUninitialized: true,
       cookie: {
-        // secure: process.env.NODE_ENV === "production",
-        // domain: `${frontendDomain}`,
-        // sameSite: "lex",
-        secure: true,
-        maxAge: parseInt(process.env.MAX_AGE, 10), // Ensure maxAge is an integer
+        secure: isProduction,
+        domain: isProduction ? `${frontendDomain}` : undefined,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: parseInt(process.env.MAX_AGE, 10),
         httpOnly: false,
       },
       store,
