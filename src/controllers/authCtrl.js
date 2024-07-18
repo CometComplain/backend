@@ -115,7 +115,6 @@ const formatUser = (user, googleUser) => {
 
 export const pingUser = AsyncHandler(async (req, res) => {
   console.log(req.cookies);
-  console.log(req.user)
   if (req.user) {
     const user = await User.findOne({ googleId: req.user.id });
     res.json(formatUser(user, req.user));
