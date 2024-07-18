@@ -15,7 +15,6 @@ import { frontendDomain, serverIp } from "./constants.js";
 import cors from "cors";
 const store = createSessionStore();
 const app = express();
-console.log(store);
 app.use(
   cors({
     origin: frontendDomain, // Specify the exact origin
@@ -39,8 +38,6 @@ app.use(cookieParser());
 configureSession(app, store);
 app.use(passport.initialize());
 app.use(passport.session());
-console.log(req.session())
-console.log(req.cookies())
 app.get("/health", (req, res) => {
   res.status(201).json({ message: "health is ok!" });
 });
