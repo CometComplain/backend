@@ -12,10 +12,9 @@ const configureSession = (app, store) => {
       saveUninitialized: true,
       cookie: {
         secure: isProduction,
-        domain: isProduction ? `${process.env.FRONTEND_DOMAIN_COOKIE}` : undefined,
+        domain: isProduction ? `${process.env.BACKEND_DOMAIN_COOKIE}` : undefined,
         sameSite: isProduction ? "none" : "lax",
         maxAge: parseInt(process.env.MAX_AGE, 10),
-        httpOnly: false,
         path: '/',
       },
       store,
