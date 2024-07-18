@@ -3,7 +3,7 @@ import { frontendDomain } from "../constants.js";
 
 const configureSession = (app, store) => {
   const isProduction = process.env.NODE_ENV === "production";
-  console.log(process.env.FRONTEND_DOMAIN_COOKIE);
+  console.log(isProduction);
   
   app.use(
     session({
