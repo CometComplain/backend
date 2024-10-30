@@ -9,13 +9,11 @@ const configureSession = (app, store) => {
     session({
       secret: process.env.SESSION_SECRET_KEY,
       resave: false,
-      saveUninitialized: true,
+      saveUninitialized: false,  
       cookie: {
         secure: isProduction,
-        domain: isProduction ? `${process.env.BACKEND_DOMAIN_COOKIE}` : undefined,
         sameSite: isProduction ? "none" : "lax",
-        maxAge: parseInt(process.env.MAX_AGE, 10),
-        path: '/',
+        maxAge: 24 * 60 * 60 * 1000,
       },
       store,
     }),
